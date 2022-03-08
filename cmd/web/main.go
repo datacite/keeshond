@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/datacite/keeshond"
+	"github.com/datacite/keeshond/internal/keeshond"
 )
 
 type Config struct {
