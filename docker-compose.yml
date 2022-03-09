@@ -1,0 +1,10 @@
+version: "3.3"
+services:
+
+  web:
+    build: .
+    ports:
+      - 8081:8081
+    environment:
+      - PLAUSIBLE_URL=http://localhost:8100/
+      - DATACITE_API_URL=http://api.stage.datacite.org
