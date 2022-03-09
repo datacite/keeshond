@@ -3,6 +3,7 @@ package keeshond
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -59,6 +60,7 @@ func NewServer() *Server {
 func (s *Server) Open() (err error) {
 	s.server.Addr = s.Addr
 
+	log.Println("Server starting, listening on", s.Addr)
 	return s.server.ListenAndServe()
 }
 
