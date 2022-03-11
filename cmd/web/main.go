@@ -32,8 +32,8 @@ func main() {
 	// Get configuration from environment variables.
 	config := Config{}
 	config.HTTP.Addr = getEnv("HTTP_ADDR", ":8081")
-	config.Plausible.Url = getEnv("PLAUSIBLE_URL", "http://analytics.stage.datacite.org/")
-	config.DataCite.Url = getEnv("DATACITE_API_URL", "http://api.stage.datacite.org")
+	config.Plausible.Url = getEnv("PLAUSIBLE_URL", "https://analytics.stage.datacite.org/")
+	config.DataCite.Url = getEnv("DATACITE_API_URL", "https://api.stage.datacite.org")
 
 	// Run with configuration.
 	if err := run(&config); err != nil {
