@@ -9,7 +9,7 @@ import (
 )
 
 type GetUrlResponse struct {
-	Url string `json:"name"`
+	Url string `json:"url"`
 }
 
 func checkExistsInDataCite(doi string, url string, dataciteApiUrl string, client *http.Client) error {
