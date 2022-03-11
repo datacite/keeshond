@@ -69,7 +69,7 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add stage/services/analytics-api/keeshond.auto.tfvars
-          git commit -m "Adding lupo git variables for commit ${{ steps.extract_variables.outputs.GIT_SHA }}"
+          git commit -m "Adding keeshond git variables for commit ${{ steps.extract_variables.outputs.GIT_SHA }}"
       - name: Push changes
         uses: ad-m/github-push-action@v0.6.0
         with:
