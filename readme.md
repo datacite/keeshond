@@ -1,6 +1,7 @@
 # Keeshond - DataCite metrics microservice
 
 This is the main endpoint for the [DataCite Tracker](https://github.com/datacite/datacite-tracker)
+It is currently designed to send metric events as Plausible events to a configured plausible server.
 
 ## Development
 
