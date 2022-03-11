@@ -109,6 +109,7 @@ func (s *Server) createMetric(w http.ResponseWriter, r *http.Request) {
 		errorMessage := fmt.Sprintf("%s - %s, Usage stats cannot be processed", metricEvent.Pid, err.Error())
 
 		http.Error(w, errorMessage, http.StatusBadRequest)
+		return
 	}
 
 	// Save to plausible
