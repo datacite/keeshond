@@ -31,15 +31,11 @@ func NewMetricEvent(name string, repoId string, timestamp time.Time, url string,
 	}
 }
 
-type PlausibleEventCustomProps struct {
-	Pid string `json:"pid"`
-}
-
 type PlausibleEvent struct {
 	Name   string                    `json:"name"`
 	Domain string                    `json:"domain"`
 	Url    string                    `json:"url"`
-	Props  PlausibleEventCustomProps `json:"props"`
+	Props  string 					 `json:"props"`
 }
 
 func SendMetricEventToPlausible(metric *MetricEvent, plausibleUrl string, client *http.Client) error {
@@ -52,9 +48,7 @@ func SendMetricEventToPlausible(metric *MetricEvent, plausibleUrl string, client
 		Name:   metric.Name,
 		Domain: metric.RepoId,
 		Url:    metric.Url,
-		Props: PlausibleEventCustomProps{
-			Pid: metric.Pid,
-		},
+		Props: "{\"pid\":\"" + metric.Pid + "\"}",
 	}
 
 	// Marshal plausible event to json
