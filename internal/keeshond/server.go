@@ -21,6 +21,7 @@ type Server struct {
 
 	PlausibleUrl   string
 	DataCiteApiUrl string
+	ValidateDoi    bool
 }
 
 func NewServer() *Server {
@@ -59,6 +60,7 @@ func NewServer() *Server {
 // Open validates the server options and begins listening on the bind address.
 func (s *Server) Open() (err error) {
 	s.server.Addr = s.Addr
+	s.ValidateDoi = true
 
 	log.Println("Server starting, listening on", s.Addr)
 	return s.server.ListenAndServe()
@@ -103,13 +105,15 @@ func (s *Server) createMetric(w http.ResponseWriter, r *http.Request) {
 	// Http client
 	client := &http.Client{}
 
-	// Validate PID
-	if err := checkExistsInDataCite(metricEvent.Pid, metricEvent.Url, s.DataCiteApiUrl, client); err != nil {
-		// Format error message
-		errorMessage := fmt.Sprintf("%s - %s, Usage stats cannot be processed", metricEvent.Pid, err.Error())
+	// Validate PID when server is set to validate and is a view event
+	if s.ValidateDoi && metricEvent.Name == "view" {
+		if err := checkExistsInDataCite(metricEvent.Pid, metricEvent.Url, s.DataCiteApiUrl, client); err != nil {
+			// Format error message
+			errorMessage := fmt.Sprintf("%s - %s, Usage stats cannot be processed", metricEvent.Pid, err.Error())
 
-		http.Error(w, errorMessage, http.StatusBadRequest)
-		return
+			http.Error(w, errorMessage, http.StatusBadRequest)
+			return
+		}
 	}
 
 	// Save to plausible
