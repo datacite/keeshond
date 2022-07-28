@@ -1,4 +1,4 @@
-package keeshond
+package net
 
 import (
 	"encoding/json"
@@ -6,29 +6,28 @@ import (
 	"log"
 	"net/http"
 	"strings"
-	"time"
 
+	"github.com/datacite/keeshond/internal/app"
+	"github.com/datacite/keeshond/internal/app/event"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 )
 
-type Server struct {
+type Http struct {
 	server *http.Server
 	router *chi.Mux
+	config *app.Config
 
-	Addr string
-
-	PlausibleUrl   string
-	DataCiteApiUrl string
-	ValidateDoi    bool
+	eventService *event.Service
 }
 
-func NewServer() *Server {
-	// Create a new server that wraps the net/http server & add a gorilla router.
-	s := &Server{
+func NewHttpServer(config *app.Config) *Http {
+	// Create a new server that wraps the net/http server & add a router.
+	s := &Http{
 		server: &http.Server{},
 		router: chi.NewRouter(),
+		config: config,
 	}
 
 	s.router.Use(middleware.RequestID)
@@ -45,6 +44,11 @@ func NewServer() *Server {
 		MaxAge:           300, // Maximum value not ignored by any of major browsers
 	}))
 
+	// Register repositories and services
+	eventRepository := event.NewRepositoryPlausible(config)
+	eventService := event.NewService(eventRepository, config)
+	s.eventService = eventService
+
 	// Register routes.
 	s.router.Get("/heartbeat", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("ok"))
@@ -58,19 +62,11 @@ func NewServer() *Server {
 }
 
 // Open validates the server options and begins listening on the bind address.
-func (s *Server) Open() (err error) {
-	s.server.Addr = s.Addr
-	s.ValidateDoi = true
+func (s *Http) Open() (err error) {
+	s.server.Addr = s.config.HTTP.Addr
 
-	log.Println("Server starting, listening on", s.Addr)
+	log.Println("Server starting, listening on", s.config.HTTP.Addr)
 	return s.server.ListenAndServe()
-}
-
-type MetricRequest struct {
-	Name   string `json:"n"`
-	RepoId string `json:"i"`
-	Url    string `json:"u"`
-	Pid    string `json:"p"`
 }
 
 // Get remote IP Address
@@ -85,8 +81,15 @@ func getRemoteAddr(r *http.Request) string {
 	return remoteAddr
 }
 
-func (s *Server) createMetric(w http.ResponseWriter, r *http.Request) {
-	// Metric request is different to a metric event as only some data comes
+type MetricRequest struct {
+	Name   string `json:"n"`
+	RepoId string `json:"i"`
+	Url    string `json:"u"`
+	Pid    string `json:"p"`
+}
+
+func (s *Http) createMetric(w http.ResponseWriter, r *http.Request) {
+	// Metric request is different to a eventRequest as only some data comes
 	// from the json body
 	var metricRequest MetricRequest
 
@@ -99,27 +102,28 @@ func (s *Server) createMetric(w http.ResponseWriter, r *http.Request) {
 	// Get potential IP from request
 	clientIp := getRemoteAddr(r)
 
-	// Create metric event from the metric request
-	metricEvent := NewMetricEvent(metricRequest.Name, metricRequest.RepoId, time.Now(), metricRequest.Url, r.UserAgent(), clientIp, metricRequest.Pid)
-
-	// Http client
-	client := &http.Client{}
-
-	// Validate PID when server is set to validate and is a view event
-	if s.ValidateDoi && metricEvent.Name == "view" {
-		if err := checkExistsInDataCite(metricEvent.Pid, metricEvent.Url, s.DataCiteApiUrl, client); err != nil {
-			// Format error message
-			errorMessage := fmt.Sprintf("%s - %s, Usage stats cannot be processed", metricEvent.Pid, err.Error())
-
-			http.Error(w, errorMessage, http.StatusBadRequest)
-			return
-		}
+	// Create event request from the metric request
+	eventRequest := event.Request{
+		Name:      metricRequest.Name,
+		RepoId:    metricRequest.RepoId,
+		Url:       metricRequest.Url,
+		Useragent: r.UserAgent(),
+		ClientIp:  clientIp,
+		Pid:       metricRequest.Pid,
 	}
 
-	// Save to plausible
+	// Validate Event Request
+	if err := s.eventService.Validate(&eventRequest); err != nil {
+		// Format error message
+		errorMessage := fmt.Sprintf("%s - %s, Usage stats cannot be processed", eventRequest.Pid, err.Error())
 
-	if err := SendMetricEventToPlausible(metricEvent, s.PlausibleUrl, client); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, errorMessage, http.StatusBadRequest)
+
 		return
+	}
+
+	// Create event
+	if _, err := s.eventService.CreateEvent(&eventRequest); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }

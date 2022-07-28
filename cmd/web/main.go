@@ -2,50 +2,23 @@ package main
 
 import (
 	"log"
-	"os"
 
-	"github.com/datacite/keeshond/internal/keeshond"
+	"github.com/datacite/keeshond/internal/app"
+	"github.com/datacite/keeshond/internal/app/net"
 )
-
-type Config struct {
-	HTTP struct {
-		Addr string
-	}
-
-	Plausible struct {
-		Url string
-	}
-
-	DataCite struct {
-		Url string
-	}
-}
-
-func getEnv(key, fallback string) string {
-	if value, ok := os.LookupEnv(key); ok {
-		return value
-	}
-	return fallback
-}
 
 func main() {
 	// Get configuration from environment variables.
-	config := Config{}
-	config.HTTP.Addr = getEnv("HTTP_ADDR", ":8081")
-	config.Plausible.Url = getEnv("PLAUSIBLE_URL", "https://analytics.stage.datacite.org")
-	config.DataCite.Url = getEnv("DATACITE_API_URL", "https://api.stage.datacite.org")
+	var config = app.GetConfigFromEnv()
 
 	// Run with configuration.
-	if err := run(&config); err != nil {
+	if err := run(config); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func run(config *Config) error {
-	server := keeshond.NewServer()
-	server.Addr = config.HTTP.Addr
-	server.PlausibleUrl = config.Plausible.Url
-	server.DataCiteApiUrl = config.DataCite.Url
+func run(config *app.Config) error {
+	server := net.NewHttpServer(config)
 
 	// Open the server.
 	if err := server.Open(); err != nil {
