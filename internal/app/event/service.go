@@ -12,7 +12,7 @@ import (
 )
 
 type Service struct {
-	repository RepositoryReader
+	eventRepository RepositoryReader
 	config     *app.Config
 }
 
@@ -28,25 +28,40 @@ type Request struct {
 // NewService creates a new event service
 func NewService(repository RepositoryReader, config *app.Config) *Service {
 	return &Service{
-		repository: repository,
+		eventRepository: repository,
 		config:     config,
 	}
 }
 
 func (service *Service) CreateEvent(eventRequest *Request) (Event, error) {
+
+	now := time.Now()
+
+	// Build a salted integer user id
+	// hash(daily_salt + website_domain + ip_address + user_agent)
+	// userId := service.config.Salt + eventRequest.repoId
+	// salt, user_agent <> ip_address <> domain <> root_domain)
+
+	// // Construct a session id based timestamp date + hour time slice + user id
+	// sessionId := now.Format("2006-01-02") + "|" + now.Format("15") + "|" + userId
+
+	var userId int64 = 0
+	var sessionId int64 = 0
+
 	event := Event{
-		Timestamp: time.Now(),
+		Timestamp: now,
 		Name:      eventRequest.Name,
 		RepoId:    eventRequest.RepoId,
+		UserID:    userId,
+		SessionID: sessionId,
 		Url:       eventRequest.Url,
 		Useragent: eventRequest.Useragent,
 		ClientIp:  eventRequest.ClientIp,
 		Pid:       eventRequest.Pid,
 	}
-	err := service.repository.Create(&event)
+	err := service.eventRepository.Create(&event)
 	return event, err
 }
-
 
 func (service *Service) Validate(eventRequest *Request) error {
 	// Http client
@@ -58,10 +73,6 @@ func (service *Service) Validate(eventRequest *Request) error {
 	}
 
 	return nil
-}
-
-type GetUrlResponse struct {
-	Url string `json:"url"`
 }
 
 func checkDoiExistsInDataCite(doi string, url string, dataciteApiUrl string, client *http.Client) error {
@@ -82,6 +93,10 @@ func checkDoiExistsInDataCite(doi string, url string, dataciteApiUrl string, cli
 
 	// Get Json result
 	body, _ := ioutil.ReadAll(resp.Body)
+
+	type GetUrlResponse struct {
+		Url string `json:"url"`
+	}
 
 	var result GetUrlResponse
 	if err := json.Unmarshal(body, &result); err != nil {
