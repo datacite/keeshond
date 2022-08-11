@@ -47,7 +47,7 @@ func GetConfigFromEnv() *Config {
 	config.Database.Host = getEnv("DATABASE_HOST", "localhost")
 	config.Database.Port = getEnv("DATABASE_PORT", "5432")
 	config.Database.User = getEnv("DATABASE_USER", "postgres")
-	config.Database.Dbname = getEnv("DATABASE_DBNAME", "postgres")
+	config.Database.Dbname = getEnv("DATABASE_DBNAME", "keeshond")
 	config.Database.Password = getEnv("DATABASE_PASSWORD", "postgres")
 	config.Database.Sslmode = getEnv("DATABASE_SSLMODE", "disable")
 
