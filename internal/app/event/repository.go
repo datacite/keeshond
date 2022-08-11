@@ -21,13 +21,15 @@ type RepositoryReader interface {
 //
 
 type RepositoryDB struct {
-	db *gorm.DB
+	db 		*gorm.DB
+	config 	*app.Config
 }
 
 // NewRepository creates a new event repository
-func NewRepositoryDB(db *gorm.DB) *RepositoryDB {
+func NewRepositoryDB(db *gorm.DB, config *app.Config) *RepositoryDB {
 	return &RepositoryDB{
 		db: db,
+		config: config,
 	}
 }
 
