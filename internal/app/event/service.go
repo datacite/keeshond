@@ -6,13 +6,17 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
+	"strings"
 	"time"
 
 	"github.com/datacite/keeshond/internal/app"
+	"github.com/datacite/keeshond/internal/app/session"
 )
 
 type Service struct {
 	eventRepository RepositoryReader
+	sessionService *session.Service
 	config     *app.Config
 }
 
@@ -26,27 +30,47 @@ type Request struct {
 }
 
 // NewService creates a new event service
-func NewService(repository RepositoryReader, config *app.Config) *Service {
+func NewService(repository RepositoryReader, sessionService *session.Service, config *app.Config) *Service {
 	return &Service{
 		eventRepository: repository,
+		sessionService:  sessionService,
 		config:     config,
 	}
 }
 
 func (service *Service) CreateEvent(eventRequest *Request) (Event, error) {
+	var err error
 
 	now := time.Now()
 
-	// Build a salted integer user id
-	// hash(daily_salt + website_domain + ip_address + user_agent)
-	// userId := service.config.Salt + eventRequest.repoId
-	// salt, user_agent <> ip_address <> domain <> root_domain)
+	salt, err := service.sessionService.GetSalt()
+	if err != nil {
+		return Event{}, err
+	}
 
-	// // Construct a session id based timestamp date + hour time slice + user id
-	// sessionId := now.Format("2006-01-02") + "|" + now.Format("15") + "|" + userId
+	// Get hostname from the url
+	url, err := url.Parse(eventRequest.Url)
+    if err != nil {
+        return Event{}, err
+    }
+    hostDomain := strings.TrimPrefix(url.Hostname(), "www.")
 
-	var userId int64 = 0
-	var sessionId int64 = 0
+	// User id is generate conforming to COUNTER rules
+	// It's a cryptographic hash of details with a daily salt.
+	var userId uint64 = session.GenerateUserId(
+		&salt,
+		eventRequest.ClientIp,
+		eventRequest.Useragent,
+		eventRequest.RepoId,
+		hostDomain,
+	)
+
+	// Session id is hashed session based on the user id and current time
+	// Sessions will be different every hour
+	var sessionId uint64 = session.GenerateSessionId(
+		userId,
+		now,
+	)
 
 	event := Event{
 		Timestamp: now,
@@ -59,7 +83,7 @@ func (service *Service) CreateEvent(eventRequest *Request) (Event, error) {
 		ClientIp:  eventRequest.ClientIp,
 		Pid:       eventRequest.Pid,
 	}
-	err := service.eventRepository.Create(&event)
+	err = service.eventRepository.Create(&event)
 	return event, err
 }
 
@@ -79,10 +103,10 @@ func checkDoiExistsInDataCite(doi string, url string, dataciteApiUrl string, cli
 	// Make API call to DataCite for DOI
 
 	// URL to send the metric to
-	api_url := fmt.Sprintf("%s/dois/%s/get-url", dataciteApiUrl, doi)
+	apiUrl := fmt.Sprintf("%s/dois/%s/get-url", dataciteApiUrl, doi)
 
 	// Post json to url
-	resp, _ := http.Get(api_url)
+	resp, _ := http.Get(apiUrl)
 
 	if resp.StatusCode == 404 {
 		return errors.New("This DOI doesn't exist in DataCite")

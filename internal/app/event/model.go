@@ -9,8 +9,8 @@ type Event struct {
 	Timestamp time.Time `json:"timestamp"`
 	Name      string    `json:"name"`
 	RepoId    string    `json:"repoId"`
-	UserID    int64	 	`json:"userId"`
-	SessionID int64	 	`json:"sessionId"`
+	UserID    uint64	 	`json:"userId"`
+	SessionID uint64	 	`json:"sessionId"`
 	Url       string    `json:"url"`
 	Pid       string    `json:"pid"`
 
