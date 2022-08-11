@@ -107,7 +107,7 @@ func GenerateSessionID(user_id uint64, time time.Time) uint64 {
 }
 
 
-func generateUserId(salt *Salt, client_ip string, user_agent string, repo_id string, host_domain string) uint64 {
+func GenerateUserId(salt *Salt, client_ip string, user_agent string, repo_id string, host_domain string) uint64 {
 	// Build a salted integer user id
 	// User_id is based upon a daily salt, the ip from the client,
 	// the original user_agent from the request

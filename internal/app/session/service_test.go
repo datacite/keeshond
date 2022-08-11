@@ -18,7 +18,7 @@ func TestGenerateUserId(t *testing.T) {
 	host_domain := "example.com"
 
 	// Generate the user_id
-	user_id := generateUserId(&salt, client_ip, user_agent, repo_id, host_domain)
+	user_id := GenerateUserId(&salt, client_ip, user_agent, repo_id, host_domain)
 
 	var expected uint64 = 10981375520814568898
 	if user_id != expected {
