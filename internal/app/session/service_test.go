@@ -12,34 +12,34 @@ func TestGenerateUserId(t *testing.T) {
 		Created: time.Now(),
 	}
 
-	repo_id := "my_fake_repo"
-	user_agent := "Mozilla/5.0 (compatible; FakeUser/1.0; +http://www.example.com/bot.html)"
-	client_ip := "127.0.0.1"
-	host_domain := "example.com"
+	repoId := "my_fake_repo"
+	userAgent := "Mozilla/5.0 (compatible; FakeUser/1.0; +http://www.example.com/bot.html)"
+	clientIp := "127.0.0.1"
+	hostDomain := "example.com"
 
-	// Generate the user_id
-	user_id := GenerateUserId(&salt, client_ip, user_agent, repo_id, host_domain)
+	// Generate the userId
+	userId := GenerateUserId(&salt, clientIp, userAgent, repoId, hostDomain)
 
 	var expected uint64 = 10981375520814568898
-	if user_id != expected {
+	if userId != expected {
 		// fatal if the user id is not the expected value
 		t.Fatalf(`User id is not %d`, expected)
 	}
 }
 
-func TestGenerateSessionID(t *testing.T) {
+func TestGenerateSessionId(t *testing.T) {
 
 	// Create fake user id
-	user_id := uint64(10981375520814568898)
+	userId := uint64(10981375520814568898)
 
 	// Create fake time for reproducibility
 	time := time.Date(2019, time.January, 1, 15, 15, 0, 0, time.UTC)
 
 	// Generate session id
-	session_id := GenerateSessionID(user_id, time)
+	sessionId := GenerateSessionId(userId, time)
 
 	var expected uint64 = 2259115543464263857
-	if session_id != expected {
+	if sessionId != expected {
 		t.Fatalf(`Session id is not %d`, expected)
 	}
 }

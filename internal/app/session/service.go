@@ -40,15 +40,15 @@ func (service *Service) CreateSalt() error {
 
 func generateSalt() (Salt, error) {
 	// Generate a new random salt byte array
-	salt_bytes := make([]byte, 16)
-	_, err := io.ReadFull(rand.Reader, salt_bytes)
+	saltBytes := make([]byte, 16)
+	_, err := io.ReadFull(rand.Reader, saltBytes)
 	if err != nil {
 		return Salt{}, err
 	}
 
 	// Create the salt
 	salt := Salt{
-		Salt: salt_bytes,
+		Salt: saltBytes,
 		Created: time.Now(),
 	}
 
@@ -58,7 +58,7 @@ func generateSalt() (Salt, error) {
 func (service *Service) GetSalt() (Salt, error) {
 
 	// Get the current salt
-	current_salt, err := service.repository.Get()
+	currentSalt, err := service.repository.Get()
 
 	// TODO: The following setup probably should not happen on a get call, instead
 	// the salt should be created ahead of time and a rotation job seperatly.
@@ -69,40 +69,40 @@ func (service *Service) GetSalt() (Salt, error) {
 
 		// If there was an error, return it
 		if err != nil {
-			return current_salt, err
+			return currentSalt, err
 		}
 
 		// Get the current salt again
-		current_salt, err = service.repository.Get()
+		currentSalt, err = service.repository.Get()
 	}
 
 	// Generate a new salt if salt created is older than a day
-	if current_salt.Created.Add(time.Hour * 24).Before(time.Now()) {
+	if currentSalt.Created.Add(time.Hour * 24).Before(time.Now()) {
 		err = service.CreateSalt()
 
 		// If there was an error, return it
 		if err != nil {
-			return current_salt, err
+			return currentSalt, err
 		}
 
 		// Get the current salt again
-		current_salt, err = service.repository.Get()
+		currentSalt, err = service.repository.Get()
 	}
 
-	return current_salt, nil
+	return currentSalt, nil
 }
 
-func GenerateSessionID(user_id uint64, time time.Time) uint64 {
+func GenerateSessionId(user_id uint64, time time.Time) uint64 {
 	// Construct a session id based timestamp date + hour time slice + user id
 	// sessionId := now.Format("2006-01-02") + "|" + now.Format("15") + "|" + user_id
-	session_id := fmt.Sprintf("%s|%s|%x", time.Format("2006-01-02"), time.Format("15"), user_id)
+	sessionId := fmt.Sprintf("%s|%s|%x", time.Format("2006-01-02"), time.Format("15"), user_id)
 
 	// print session id
-	fmt.Println(session_id)
+	fmt.Println(sessionId)
 
 	// Hash the session id into a 64 bit integer
 	h := fnv.New64a()
-	h.Write([]byte(session_id))
+	h.Write([]byte(sessionId))
 	return h.Sum64()
 }
 
@@ -115,12 +115,12 @@ func GenerateUserId(salt *Salt, client_ip string, user_agent string, repo_id str
 	// and finally the host domain, this is to ensure it's unique
 	// if it's the same repo but different websites.
 
-	user_id := fmt.Sprintf("%s|%s|%s|%s", client_ip, user_agent, repo_id, host_domain)
+	userId := fmt.Sprintf("%s|%s|%s|%s", client_ip, user_agent, repo_id, host_domain)
 
 	// Siphash is a fast cryptographic hash function that can be used to hash
 	// a string or byte array into a 64 bit integer.
 	h := siphash.New(salt.Salt)
-	h.Write([]byte(user_id))
+	h.Write([]byte(userId))
 
 	return h.Sum64()
 }
