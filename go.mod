@@ -7,6 +7,7 @@ require github.com/go-chi/chi/v5 v5.0.7
 require github.com/go-chi/cors v1.2.0
 
 require (
+	github.com/dchest/siphash v1.2.3 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.12.1 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect
