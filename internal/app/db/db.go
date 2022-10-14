@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/datacite/keeshond/internal/app/event"
+	"github.com/datacite/keeshond/internal/app/session"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -57,6 +58,7 @@ func TestConnection(db *gorm.DB) error {
 func AutoMigrate(db *gorm.DB) error{
     err := db.AutoMigrate (
         &event.Event{},
+        &session.Salt{},
 	)
     return err
 }
