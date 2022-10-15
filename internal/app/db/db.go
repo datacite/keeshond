@@ -6,21 +6,22 @@ import (
 	"os"
 	"time"
 
+	extraClausePlugin "github.com/WinterYukky/gorm-extra-clause-plugin"
 	"github.com/datacite/keeshond/internal/app/event"
 	"github.com/datacite/keeshond/internal/app/session"
-	"gorm.io/driver/postgres"
+	"gorm.io/driver/clickhouse"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
 
-// Format a postgresql dsn from seperate config fields
-func CreatePostgresDSN(host, port, user, dbname, password, sslmode string) string {
-    	return fmt.Sprintf(
-		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
-		host, port, user, password, dbname, sslmode)
+// Format a clickhouse dsn from seperate config fields
+func CreateClickhouseDSN(host, port, user, password, dbname string) string {
+    return fmt.Sprintf("clickhouse://%s:%s@%s:%s/%s", user, password, host, port, dbname)
 }
 
-func NewGormPostgresConnection(dsn string) (*gorm.DB, error) {
+func NewGormClickhouseConnection(dsn string) (*gorm.DB, error) {
+
+    // Setup a custom logger for gorm
     newLogger := logger.New(
         log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
         logger.Config{
@@ -31,13 +32,18 @@ func NewGormPostgresConnection(dsn string) (*gorm.DB, error) {
         },
       )
 
-    db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+    // Open the connection with the custom logger
+    db, err := gorm.Open(clickhouse.Open(dsn), &gorm.Config{
         Logger: newLogger,
     })
 
     if err != nil {
         return db, err
     }
+
+    // Gives us special access to do a common table expression with gorm i.e. "with"
+    db.Use(extraClausePlugin.New())
+
     return db, nil
 }
 

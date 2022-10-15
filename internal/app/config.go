@@ -45,11 +45,10 @@ func GetConfigFromEnv() *Config {
 
 	// Database config
 	config.Database.Host = getEnv("DATABASE_HOST", "localhost")
-	config.Database.Port = getEnv("DATABASE_PORT", "5432")
-	config.Database.User = getEnv("DATABASE_USER", "postgres")
+	config.Database.Port = getEnv("DATABASE_PORT", "9000")
+	config.Database.User = getEnv("DATABASE_USER", "keeshond")
 	config.Database.Dbname = getEnv("DATABASE_DBNAME", "keeshond")
-	config.Database.Password = getEnv("DATABASE_PASSWORD", "postgres")
-	config.Database.Sslmode = getEnv("DATABASE_SSLMODE", "disable")
+	config.Database.Password = getEnv("DATABASE_PASSWORD", "keeshond")
 
 	// Validate DOI
 	config.ValidateDoi = getEnv("VALIDATE_DOI", "true") == "true"
