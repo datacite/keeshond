@@ -17,7 +17,7 @@ type Service struct {
 	config     *app.Config
 }
 
-// NewService creates a new event service
+// NewService creates a new session service
 func NewService(repository RepositoryReader, config *app.Config) *Service {
 	return &Service{
 		repository: repository,
