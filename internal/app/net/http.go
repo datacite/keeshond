@@ -9,15 +9,18 @@ import (
 
 	"github.com/datacite/keeshond/internal/app"
 	"github.com/datacite/keeshond/internal/app/event"
+	"github.com/datacite/keeshond/internal/app/session"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	"gorm.io/gorm"
 )
 
 type Http struct {
 	server *http.Server
 	router *chi.Mux
 	config *app.Config
+	db     *gorm.DB
 
 	eventService *event.Service
 }
@@ -46,7 +49,10 @@ func NewHttpServer(config *app.Config) *Http {
 
 	// Register repositories and services
 	eventRepository := event.NewRepositoryPlausible(config)
-	eventService := event.NewService(eventRepository, config)
+	sessionRepository := session.NewRepository(s.db, config)
+	sessionService := session.NewService(sessionRepository, config)
+
+	eventService := event.NewService(eventRepository, sessionService, config)
 	s.eventService = eventService
 
 	// Register routes.
