@@ -18,9 +18,18 @@ type StatsRepositoryReader interface {
 	GetTotalsByPidInToday(metricName string, repo_id string) []struct{Pid string; Count int64}
 	GetTotalsByPidInLast7Days(metricName string, repo_id string) []struct{Pid string; Count int64}
 	GetTotalsByPidInLast30Days(metricName string, repo_id string) []struct{Pid string; Count int64}
-	// GetUniqueInToday(metricName string, repo_id string, pid string) int64
-	// GetUniqueInLast7Days(metricName string, repo_id string, pid string) int64
-	// GetUniqueInLast30Days(metricName string, repo_id string, pid string) int64
+
+	// Unique event metric counts for a specific PID
+	GetUniqueForInterval(metricName string, repoId string, pid string, interval func(*gorm.DB) *gorm.DB) int64
+	GetUniqueInToday(metricName string, repo_id string, pid string) int64
+	GetUniqueInLast7Days(metricName string, repo_id string, pid string) int64
+	GetUniqueInLast30Days(metricName string, repo_id string, pid string) int64
+
+	// Unique event metric counts grouped by PID
+	GetUniquesByPidForInterval(metricName string, repo_id string, interval func(*gorm.DB) *gorm.DB) []struct{Pid string; Count int64}
+	GetUniquesByPidInToday(metricName string, repo_id string) []struct{Pid string; Count int64}
+	GetUniquesByPidInLast7Days(metricName string, repo_id string) []struct{Pid string; Count int64}
+	GetUniquesByPidInLast30Days(metricName string, repo_id string) []struct{Pid string; Count int64}
 }
 
 type StatsRepository struct {
@@ -92,6 +101,58 @@ func (repository *StatsRepository) GetTotalsByPidInLast7Days(metricName string, 
 
 func (repository *StatsRepository) GetTotalsByPidInLast30Days(metricName string, repo_id string) []struct{Pid string; Count int64} {
 	return repository.GetTotalsByPidForInterval(metricName, repo_id, TimestampIn30Days)
+}
+
+// To get the unique values, this can be achieved with a simple distinct query across events for specific pids/repos
+// This doesn't need the deduping logic because sessions are always same within 1 hour, therefore any duplicated events
+// will not appear in the result count.
+// For COUNTER this is referred to as Counting Unique Datasets
+func (repository *StatsRepository) GetUniqueForInterval(metricName string, repoId string, pid string, interval func(*gorm.DB) *gorm.DB) int64 {
+	var count int64
+	repository.db.Model(&event.Event{}).
+		Distinct("session_id").
+		Scopes(NameAndRepoId(metricName, repoId), PID(pid), interval).
+		Count(&count)
+	return count
+}
+
+func (repository *StatsRepository) GetUniqueInToday(metricName string, repo_id string, pid string) int64 {
+	return repository.GetUniqueForInterval(metricName, repo_id, pid, TimestampIsToday)
+}
+
+func (repository *StatsRepository) GetUniqueInLast7Days(metricName string, repo_id string, pid string) int64 {
+	return repository.GetUniqueForInterval(metricName, repo_id, pid, TimestampIn7Days)
+}
+
+func (repository *StatsRepository) GetUniqueInLast30Days(metricName string, repo_id string, pid string) int64 {
+	return repository.GetUniqueForInterval(metricName, repo_id, pid, TimestampIn30Days)
+}
+
+// Similiar to the unique values by PID, we can do the same as this except, we add an additional group by to get the counts per pid
+func (repository *StatsRepository) GetUniquesByPidForInterval(metricName string, repoId string, interval func(*gorm.DB) *gorm.DB) []struct{Pid string; Count int64} {
+	var result []struct {
+		Pid string
+		Count int64
+	}
+	repository.db.Model(&event.Event{}).
+		Select("pid, count(distinct session_id) as count").
+		Scopes(NameAndRepoId(metricName, repoId), interval).
+		Group("pid").
+		Limit(10).
+		Scan(&result)
+	return result
+}
+
+func (repository *StatsRepository) GetUniquesByPidInToday(metricName string, repo_id string) []struct{Pid string; Count int64} {
+	return repository.GetUniquesByPidForInterval(metricName, repo_id, TimestampIsToday)
+}
+
+func (repository *StatsRepository) GetUniquesByPidInLast7Days(metricName string, repo_id string) []struct{Pid string; Count int64} {
+	return repository.GetUniquesByPidForInterval(metricName, repo_id, TimestampIn7Days)
+}
+
+func (repository *StatsRepository) GetUniquesByPidInLast30Days(metricName string, repo_id string) []struct{Pid string; Count int64} {
+	return repository.GetUniquesByPidForInterval(metricName, repo_id, TimestampIn30Days)
 }
 
 // Following are scopes for the event model that can be used
