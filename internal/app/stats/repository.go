@@ -6,7 +6,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type RepositoryReader interface {
+type StatsRepositoryReader interface {
 	GetTotalInToday(metricName string, repo_id string, pid string) int64
 	GetTotalInLast7Days(metricName string, repo_id string, pid string) int64
 	GetTotalInLast30Days(metricName string, repo_id string, pid string) int64
@@ -15,17 +15,17 @@ type RepositoryReader interface {
 	// GetUniqueInLast30Days(metricName string, repo_id string, pid string) int64
 }
 
-type Repository struct {
+type StatsRepository struct {
 	db 		*gorm.DB
 }
 
-func NewRepository(db *gorm.DB) *Repository {
-	return &Repository{
+func NewRepository(db *gorm.DB) *StatsRepository {
+	return &StatsRepository{
 		db: db,
 	}
 }
 
-func (repository *Repository) GetTotalInToday(metricName string, repoId string, pid string) int64 {
+func (repository *StatsRepository) GetTotalInToday(metricName string, repoId string, pid string) int64 {
 	var count int64
 	repository.db.
 	Clauses(
@@ -39,7 +39,7 @@ func (repository *Repository) GetTotalInToday(metricName string, repoId string, 
 	return count
 }
 
-func (repository *Repository) GetTotalInLast7Days(metricName string, repoId string, pid string) int64 {
+func (repository *StatsRepository) GetTotalInLast7Days(metricName string, repoId string, pid string) int64 {
 	var count int64
 	repository.db.
 	Clauses(
@@ -53,7 +53,7 @@ func (repository *Repository) GetTotalInLast7Days(metricName string, repoId stri
 	return count
 }
 
-func (repository *Repository) GetTotalInLast30Days(metricName string, repoId string, pid string) int64 {
+func (repository *StatsRepository) GetTotalInLast30Days(metricName string, repoId string, pid string) int64 {
 	var count int64
 	repository.db.
 	Clauses(

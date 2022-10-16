@@ -1,24 +1,24 @@
 package stats
 
-type Service struct {
-	repository RepositoryReader
+type StatsService struct {
+	repository StatsRepositoryReader
 }
 
-// NewService creates a new stats service
-func NewService(repository RepositoryReader) *Service {
-	return &Service{
+// NewStatsService creates a new stats service
+func NewStatsService(repository StatsRepositoryReader) *StatsService {
+	return &StatsService{
 		repository: repository,
 	}
 }
 
-func (service *Service) GetTotalInToday(metricName string, repoid string, pid string) int64 {
+func (service *StatsService) GetTotalInToday(metricName string, repoid string, pid string) int64 {
 	return service.repository.GetTotalInToday(metricName, repoid, pid)
 }
 
-func (service *Service) GetTotalInLast7Days(metricName string, repoid string, pid string) int64 {
+func (service *StatsService) GetTotalInLast7Days(metricName string, repoid string, pid string) int64 {
 	return service.repository.GetTotalInLast7Days(metricName, repoid, pid)
 }
 
-func (service *Service) GetTotalInLast30Days(metricName string, repoid string, pid string) int64 {
+func (service *StatsService) GetTotalInLast30Days(metricName string, repoid string, pid string) int64 {
 	return service.repository.GetTotalInLast30Days(metricName, repoid, pid)
 }

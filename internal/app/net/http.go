@@ -22,7 +22,7 @@ type Http struct {
 	config *app.Config
 	db     *gorm.DB
 
-	eventService *event.Service
+	eventService *event.EventService
 }
 
 func NewHttpServer(config *app.Config) *Http {
@@ -49,10 +49,10 @@ func NewHttpServer(config *app.Config) *Http {
 
 	// Register repositories and services
 	eventRepository := event.NewRepositoryPlausible(config)
-	sessionRepository := session.NewRepository(s.db, config)
-	sessionService := session.NewService(sessionRepository, config)
+	sessionRepository := session.NewSessionRepository(s.db, config)
+	sessionService := session.NewSessionService(sessionRepository, config)
 
-	eventService := event.NewService(eventRepository, sessionService, config)
+	eventService := event.NewEventService(eventRepository, sessionService, config)
 	s.eventService = eventService
 
 	// Register routes.
@@ -109,7 +109,7 @@ func (s *Http) createMetric(w http.ResponseWriter, r *http.Request) {
 	clientIp := getRemoteAddr(r)
 
 	// Create event request from the metric request
-	eventRequest := event.Request{
+	eventRequest := event.EventRequest{
 		Name:      metricRequest.Name,
 		RepoId:    metricRequest.RepoId,
 		Url:       metricRequest.Url,

@@ -10,7 +10,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type RepositoryReader interface {
+type EventRepositoryReader interface {
 	Create(event *Event) error
 	// GetAll() ([]Event, error)
 	// GetByID(id uint) (Event, error)
@@ -20,21 +20,21 @@ type RepositoryReader interface {
 // Database implementation of the event repository
 //
 
-type RepositoryDB struct {
+type EventRepository struct {
 	db 		*gorm.DB
 	config 	*app.Config
 }
 
 // NewRepository creates a new event repository
-func NewRepositoryDB(db *gorm.DB, config *app.Config) *RepositoryDB {
-	return &RepositoryDB{
+func NewEventRepository(db *gorm.DB, config *app.Config) *EventRepository {
+	return &EventRepository{
 		db: db,
 		config: config,
 	}
 }
 
 // Create a new event
-func (repository *RepositoryDB) Create(event *Event) error {
+func (repository *EventRepository) Create(event *Event) error {
 	return repository.db.Create(event).Error
 }
 

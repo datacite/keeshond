@@ -14,13 +14,13 @@ import (
 	"github.com/datacite/keeshond/internal/app/session"
 )
 
-type Service struct {
-	eventRepository RepositoryReader
-	sessionService *session.Service
+type EventService struct {
+	eventRepository EventRepositoryReader
+	sessionService *session.SessionService
 	config     *app.Config
 }
 
-type Request struct {
+type EventRequest struct {
 	Name      string    `json:"name"`
 	RepoId    string    `json:"repoId"`
 	Url       string    `json:"url"`
@@ -29,16 +29,16 @@ type Request struct {
 	Pid       string    `json:"pid"`
 }
 
-// NewService creates a new event service
-func NewService(repository RepositoryReader, sessionService *session.Service, config *app.Config) *Service {
-	return &Service{
+// NewEventService creates a new event service
+func NewEventService(repository EventRepositoryReader, sessionService *session.SessionService, config *app.Config) *EventService {
+	return &EventService{
 		eventRepository: repository,
 		sessionService:  sessionService,
 		config:     config,
 	}
 }
 
-func (service *Service) CreateEvent(eventRequest *Request) (Event, error) {
+func (service *EventService) CreateEvent(eventRequest *EventRequest) (Event, error) {
 	var err error
 
 	now := time.Now()
@@ -87,7 +87,7 @@ func (service *Service) CreateEvent(eventRequest *Request) (Event, error) {
 	return event, err
 }
 
-func (service *Service) Validate(eventRequest *Request) error {
+func (service *EventService) Validate(eventRequest *EventRequest) error {
 	// Http client
 	client := &http.Client{}
 

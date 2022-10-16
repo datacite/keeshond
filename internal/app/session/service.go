@@ -12,20 +12,20 @@ import (
 	"gorm.io/gorm"
 )
 
-type Service struct {
-	repository RepositoryReader
+type SessionService struct {
+	repository SessionRepositoryReader
 	config     *app.Config
 }
 
-// NewService creates a new session service
-func NewService(repository RepositoryReader, config *app.Config) *Service {
-	return &Service{
+// NewSessionService creates a new session service
+func NewSessionService(repository SessionRepositoryReader, config *app.Config) *SessionService {
+	return &SessionService{
 		repository: repository,
 		config:     config,
 	}
 }
 
-func (service *Service) CreateSalt() error {
+func (service *SessionService) CreateSalt() error {
 	// Generate random salt
 	salt, err := generateSalt()
 	if err != nil {
@@ -55,7 +55,7 @@ func generateSalt() (Salt, error) {
 	return salt, nil
 }
 
-func (service *Service) GetSalt() (Salt, error) {
+func (service *SessionService) GetSalt() (Salt, error) {
 
 	// Get the current salt
 	currentSalt, err := service.repository.Get()
