@@ -8,3 +8,25 @@ services:
     environment:
       - PLAUSIBLE_URL=http://localhost:8100/
       - DATACITE_API_URL=http://api.stage.datacite.org
+
+  db:
+    image: clickhouse/clickhouse-server
+    ports:
+      - 8123:8123
+      - 9000:9000
+    restart: always
+    volumes:
+      - event-data:/var/lib/clickhouse
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    environment:
+      CLICKHOUSE_DB: keeshond
+      CLICKHOUSE_USER: keeshond
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
+      CLICKHOUSE_PASSWORD: keeshond
+
+volumes:
+  event-data:
+    driver: local
