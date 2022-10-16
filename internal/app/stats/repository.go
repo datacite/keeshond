@@ -97,18 +97,6 @@ func (repository *StatsRepository) GetTotalsByPidInLast30Days(metricName string,
 // Following are scopes for the event model that can be used
 // to build up queries dynamically.
 
-// func IntervalCalcCTE(scopes ...func(*gorm.DB) *gorm.DB) func(*gorm.DB) *gorm.DB {
-// 	return func(db *gorm.DB) *gorm.DB {
-// 		return db.Clauses(exclause.NewWith("interval_calc", db.Model(&event.Event{}).Scopes(Interval30Sec + scopes...)))
-// 	}
-// }
-
-// func Interval30Sec(db *gorm.DB) *gorm.DB {
-// 	return db.
-// 	Select("toStartOfInterval(timestamp, INTERVAL 30 second) as interval_alias").
-// 	Group("interval_alias")
-// }
-
 func NameAndRepoId(name string, repo_id string) func (db *gorm.DB) *gorm.DB {
 	return func (db *gorm.DB) *gorm.DB {
 	  return db.Where("name = ?", name).Where("repo_id = ?", repo_id)
