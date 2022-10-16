@@ -5,7 +5,6 @@ import (
 )
 
 type Event struct {
-	ID        uint      `gorm:"primary key;autoIncrement" json:"id"`
 	Timestamp time.Time `json:"timestamp"`
 	Name      string    `json:"name"`
 	RepoId    string    `json:"repoId"`
@@ -20,3 +19,5 @@ type Event struct {
 	ClientIp  string `gorm:"-:all" json:"clientIp"`
 	Useragent string `gorm:"-:all" json:"useragent"`
 }
+
+const TABLE_OPTIONS = "ENGINE=MergeTree PARTITION BY toYYYYMM(timestamp) ORDER BY (repo_id, toDate(timestamp), user_id) SAMPLE BY user_id"

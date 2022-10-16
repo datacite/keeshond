@@ -62,8 +62,15 @@ func TestConnection(db *gorm.DB) error {
 
 // Migrate models
 func AutoMigrate(db *gorm.DB) error{
-    err := db.AutoMigrate (
-        &event.Event{},
+    var err error
+
+    err = db.Set("gorm:table_options", event.TABLE_OPTIONS).AutoMigrate(&event.Event{})
+
+    if err != nil {
+        return err
+    }
+
+    err = db.AutoMigrate (
         &session.Salt{},
 	)
     return err
