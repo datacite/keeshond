@@ -22,7 +22,8 @@ type Http struct {
 	config *app.Config
 	db     *gorm.DB
 
-	eventService *event.EventService
+	eventServiceDB *event.EventService
+	eventServicePlausible *event.EventService
 }
 
 func NewHttpServer(config *app.Config) *Http {
@@ -48,12 +49,17 @@ func NewHttpServer(config *app.Config) *Http {
 	}))
 
 	// Register repositories and services
-	eventRepository := event.NewRepositoryPlausible(config)
+	eventRepositoryPlausible := event.NewRepositoryPlausible(config)
+	eventRepositoryDB := event.NewEventRepository(s.db, config)
+
 	sessionRepository := session.NewSessionRepository(s.db, config)
 	sessionService := session.NewSessionService(sessionRepository, config)
 
-	eventService := event.NewEventService(eventRepository, sessionService, config)
-	s.eventService = eventService
+	eventServicePlausible := event.NewEventService(eventRepositoryPlausible, sessionService, config)
+	eventServiceDB := event.NewEventService(eventRepositoryDB, sessionService, config)
+
+	s.eventServicePlausible = eventServicePlausible
+	s.eventServiceDB = eventServiceDB
 
 	// Register routes.
 	s.router.Get("/heartbeat", func(w http.ResponseWriter, r *http.Request) {
@@ -119,7 +125,7 @@ func (s *Http) createMetric(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validate Event Request
-	if err := s.eventService.Validate(&eventRequest); err != nil {
+	if err := s.eventServiceDB.Validate(&eventRequest); err != nil {
 		// Format error message
 		errorMessage := fmt.Sprintf("%s - %s, Usage stats cannot be processed", eventRequest.Pid, err.Error())
 
@@ -128,8 +134,13 @@ func (s *Http) createMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Create event
-	if _, err := s.eventService.CreateEvent(&eventRequest); err != nil {
+	// Create event plausible
+	if _, err := s.eventServicePlausible.CreateEvent(&eventRequest); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+
+	// Create event db
+	if _, err := s.eventServiceDB.CreateEvent(&eventRequest); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
