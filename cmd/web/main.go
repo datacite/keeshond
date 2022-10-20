@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/datacite/keeshond/internal/app"
+	"github.com/datacite/keeshond/internal/app/db"
 	"github.com/datacite/keeshond/internal/app/net"
 )
 
@@ -18,7 +19,35 @@ func main() {
 }
 
 func run(config *app.Config) error {
-	server := net.NewHttpServer(config)
+	// Setup connection to database.
+	dsn := db.CreateClickhouseDSN(
+		config.Database.Host,
+		config.Database.Port,
+		config.Database.User,
+		config.Database.Dbname,
+		config.Database.Password,
+	)
+	conn, err := db.NewGormClickhouseConnection(dsn)
+
+	if err != nil {
+		// Log error and exit.
+		log.Fatal(err)
+	}
+
+	// Test database connection.
+	if err := db.TestConnection(conn); err != nil {
+		// Log error and exit.
+		log.Fatal(err)
+	} else {
+		log.Println("Database connection successful.")
+	}
+
+	// Migrations.
+	if err := db.AutoMigrate(conn); err != nil {
+		log.Println(err)
+	}
+
+	server := net.NewHttpServer(config, conn)
 
 	// Open the server.
 	if err := server.Open(); err != nil {

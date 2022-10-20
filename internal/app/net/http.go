@@ -10,6 +10,7 @@ import (
 	"github.com/datacite/keeshond/internal/app"
 	"github.com/datacite/keeshond/internal/app/event"
 	"github.com/datacite/keeshond/internal/app/session"
+	"github.com/datacite/keeshond/internal/app/stats"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
@@ -24,14 +25,17 @@ type Http struct {
 
 	eventServiceDB *event.EventService
 	eventServicePlausible *event.EventService
+
+	statsService *stats.StatsService
 }
 
-func NewHttpServer(config *app.Config) *Http {
+func NewHttpServer(config *app.Config, db *gorm.DB) *Http {
 	// Create a new server that wraps the net/http server & add a router.
 	s := &Http{
 		server: &http.Server{},
 		router: chi.NewRouter(),
 		config: config,
+		db:     db,
 	}
 
 	s.router.Use(middleware.RequestID)
@@ -58,6 +62,10 @@ func NewHttpServer(config *app.Config) *Http {
 	eventServicePlausible := event.NewEventService(eventRepositoryPlausible, sessionService, config)
 	eventServiceDB := event.NewEventService(eventRepositoryDB, sessionService, config)
 
+	statsRepository := stats.NewStatsRepository(s.db)
+	statsService := stats.NewStatsService(statsRepository)
+	s.statsService = statsService
+
 	s.eventServicePlausible = eventServicePlausible
 	s.eventServiceDB = eventServiceDB
 
@@ -67,6 +75,9 @@ func NewHttpServer(config *app.Config) *Http {
 	})
 
 	s.router.Post("/api/metric", s.createMetric)
+
+	// Create API routes for getting aggregate for metric statistics
+	s.router.Get("/api/stats/aggregate/{repoId}", s.getStatistics)
 
 	s.server.Handler = s.router
 
@@ -142,5 +153,23 @@ func (s *Http) createMetric(w http.ResponseWriter, r *http.Request) {
 	// Create event db
 	if _, err := s.eventServiceDB.CreateEvent(&eventRequest); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+func (s *Http) getStatistics(w http.ResponseWriter, r *http.Request) {
+	repoId := chi.URLParam(r, "repoId")
+
+	// Get total views for a repository in last 30 days
+	totalViewsLast30Days := s.statsService.GetTotalsByPidInLast30Days("view", repoId)
+
+	// Set json response headers
+	w.Header().Set("Content-Type", "application/json")
+
+	// Serialise to json if not null
+	if totalViewsLast30Days != nil {
+		json.NewEncoder(w).Encode(totalViewsLast30Days)
+	} else {
+		// Return empty array if no data
+		json.NewEncoder(w).Encode([]int{})
 	}
 }
