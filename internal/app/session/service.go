@@ -97,9 +97,6 @@ func GenerateSessionId(user_id uint64, time time.Time) uint64 {
 	// sessionId := now.Format("2006-01-02") + "|" + now.Format("15") + "|" + user_id
 	sessionId := fmt.Sprintf("%s|%s|%x", time.Format("2006-01-02"), time.Format("15"), user_id)
 
-	// print session id
-	fmt.Println(sessionId)
-
 	// Hash the session id into a 64 bit integer
 	h := fnv.New64a()
 	h.Write([]byte(sessionId))
