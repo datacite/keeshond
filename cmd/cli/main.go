@@ -63,8 +63,8 @@ func createDB(config *app.Config) *gorm.DB {
 		config.Database.Host,
 		config.Database.Port,
 		config.Database.User,
-		config.Database.Dbname,
 		config.Database.Password,
+		config.Database.Dbname,
 	)
 	conn, err := db.NewGormClickhouseConnection(dsn)
 
