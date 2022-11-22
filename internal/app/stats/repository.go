@@ -1,6 +1,7 @@
 package stats
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/WinterYukky/gorm-extra-clause-plugin/exclause"
@@ -10,12 +11,12 @@ import (
 )
 
 type StatsRepositoryReader interface {
-	// For a specific repository return aggregates for specified metrics in the specified time query.
-	Aggregate(repoId string, query Query, metrics []string) AggregateResult
-	// For a specific repository return list of time series results for specified metrics in the specified time query.
-	Timeseries(repoId string, query Query, metrics []string) []TimeseriesResult
-	// For a specific repository return specified metrics for the specified time query and grouped by PID.
-	BreakdownByPID(repoId string, query Query, metrics []string, limit int, page int) []map[string]map[string]int64
+	// For a specific repository return aggregates, for the specified time query
+	Aggregate(repoId string, query Query) AggregateResult
+	// For a specific repository return list of time series results, for the specified time query
+	Timeseries(repoId string, query Query) []TimeseriesResult
+	// For a specific repository return for the specified time query and grouped by PID.
+	BreakdownByPID(repoId string, query Query, limit int, page int) []BreakdownResult
 }
 
 type StatsRepository struct {
@@ -43,25 +44,8 @@ func NewStatsRepository(db *gorm.DB) *StatsRepository {
 // 	Limit(10)
 // }
 
-// Function to get Query object with start and end set to beginning and end of the day
 
-
-// func GetTimestampScope(query Query) func (db *gorm.DB) *gorm.DB {
-// 	switch query.Period {
-// 	case "day":
-// 		return TimestampIsToday
-// 	case "7d":
-// 		return TimestampIn7Days(query.Start)
-// 	case "30d":
-// 		return TimestampIn30Days(query.Start)
-// 	case "custom":
-// 		return TimestampCustom(query.Start, query.End)
-// 	default:
-// 		return TimestampIsToday
-// 	}
-// }
-
-func (repository *StatsRepository) Aggregate(repoId string, query Query, metrics []string) AggregateResult {
+func (repository *StatsRepository) Aggregate(repoId string, query Query) AggregateResult {
 	var result AggregateResult
 
 	// Get timestamp scope from query start and end
@@ -82,7 +66,7 @@ func (repository *StatsRepository) Aggregate(repoId string, query Query, metrics
 	return result
 }
 
-func (repository *StatsRepository) Timeseries(repoId string, query Query, metrics []string) []TimeseriesResult {
+func (repository *StatsRepository) Timeseries(repoId string, query Query) []TimeseriesResult {
 	var result []TimeseriesResult
 
 	// Get timestamp scope from query start and end
@@ -126,15 +110,33 @@ func (repository *StatsRepository) Timeseries(repoId string, query Query, metric
 
 	db.Scan(&result)
 
-	// Debug print result
-//	fmt.Printf("%+v\n", result)
-
-
 	return result
 }
 
-func (repository *StatsRepository) BreakdownByPID(repoId string, query Query, metrics []string, limit int, page int) []map[string]map[string]int64 {
-	return nil
+func (repository *StatsRepository) BreakdownByPID(repoId string, query Query, page int, pageSize int) []BreakdownResult {
+	var result []BreakdownResult
+
+	// Get timestamp scope from query start and end
+	timestampScope := TimestampCustom(query.Start, query.End)
+
+	repository.db.Debug().
+	Clauses(
+		exclause.NewWith(
+			"time_period_deduped", repository.db.Model(&event.Event{}).
+			Select("name, pid, session_id, toStartOfInterval(timestamp, INTERVAL 30 second) as interval_alias").
+			Scopes(RepoId(repoId), timestampScope).
+			Group("name, pid, session_id, interval_alias order by interval_alias"),
+		),
+	).Table("time_period_deduped").
+	Select("pid, countIf(name = 'view') as total_views, uniqIf(session_id, name = 'view') as unique_views, countIf(name = 'download') as total_downloads, uniqIf(session_id, name = 'download') as unique_downloads").
+	Group("pid").
+	Scopes(Paginate(page, pageSize)).
+	Scan(&result)
+
+	// Debug print result
+	fmt.Printf("%+v\n", result)
+
+	return result
 }
 
 // // This query is for getting based on an interval the total unique metric events

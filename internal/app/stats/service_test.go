@@ -153,7 +153,7 @@ func TestStatsService_Aggregate(t *testing.T) {
 	statsService := NewStatsService(statsRepository)
 
 	// Get stats
-	result := statsService.Aggregate("example.com", query, []string{"view", "download"})
+	result := statsService.Aggregate("example.com", query)
 
 	if result.TotalDownloads != 10 {
 		t.Errorf("TotalDownloads is not 10")
@@ -202,7 +202,7 @@ func TestStatsService_Timeseries(t *testing.T) {
 	}
 
 	// Get stats
-	result := statsService.Timeseries("example.com", query, []string{"view", "download"})
+	result := statsService.Timeseries("example.com", query)
 
 	if len(result) != 24 {
 		t.Errorf("Timeseries should have 24 rows to represent 24 hours")
@@ -227,5 +227,41 @@ func TestStatsService_Timeseries(t *testing.T) {
 			}
 		}
 	}
+}
 
+func TestStatsService_BreakdownByPID(t *testing.T) {
+	// Test config
+	config := app.GetConfigFromEnv()
+	config.ValidateDoi = false
+	config.Database.Dbname = "keeshond_test"
+
+	conn, err := setupTestDB(config)
+	if err != nil {
+		// Fail
+		t.Errorf("Error connecting to test database: %s", err)
+	}
+
+	statsRepository := NewStatsRepository(conn)
+	statsService := NewStatsService(statsRepository)
+
+	// Start of today
+	start := time.Now().UTC().Truncate(24 * time.Hour)
+
+	// End of the day
+	end := start.Add(24 * time.Hour)
+
+	// Construct query for timeseries by hour
+	query := Query{
+		Start: start,
+		End: end,
+		Period: "day",
+		Interval: "hour",
+	}
+
+	// Get stats
+	result := statsService.BreakdownByPID("example.com", query, 1, 100)
+
+	if len(result) != 10 {
+		t.Errorf("BreakdownByPID should have 10 rows to represent 10 dois")
+	}
 }

@@ -11,12 +11,16 @@ func NewStatsService(repository StatsRepositoryReader) *StatsService {
 	}
 }
 
-func (service *StatsService) Aggregate(repoId string, query Query, metrics []string) AggregateResult {
-	return service.repository.Aggregate(repoId, query, metrics)
+func (service *StatsService) Aggregate(repoId string, query Query) AggregateResult {
+	return service.repository.Aggregate(repoId, query)
 }
 
-func (service *StatsService) Timeseries(repoId string, query Query, metrics []string) []TimeseriesResult {
-	return service.repository.Timeseries(repoId, query, metrics)
+func (service *StatsService) Timeseries(repoId string, query Query) []TimeseriesResult {
+	return service.repository.Timeseries(repoId, query)
+}
+
+func (service *StatsService) BreakdownByPID(repoId string, query Query, page int, pageSize int) []BreakdownResult {
+	return service.repository.BreakdownByPID(repoId, query, page, pageSize)
 }
 
 // Total metric functions
