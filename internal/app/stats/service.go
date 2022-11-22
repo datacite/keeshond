@@ -11,7 +11,7 @@ func NewStatsService(repository StatsRepositoryReader) *StatsService {
 	}
 }
 
-func (service *StatsService) Aggregate(repoId string, query Query, metrics []string) map[string]int64 {
+func (service *StatsService) Aggregate(repoId string, query Query, metrics []string) AggregateResult {
 	return service.repository.Aggregate(repoId, query, metrics)
 }
 

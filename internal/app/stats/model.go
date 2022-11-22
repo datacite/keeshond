@@ -2,6 +2,13 @@ package stats
 
 import "time"
 
+type AggregateResult struct {
+	TotalViews int64 `json:"total_views"`
+	UniqueViews int64 `json:"unique_views"`
+	TotalDownloads int64 `json:"total_downloads"`
+	UniqueDownloads int64 `json:"unique_downloads"`
+}
+
 type PidStat struct {
 	Metric 		string `json:"metric"`
 	Pid    	  	string `json:"pid"`

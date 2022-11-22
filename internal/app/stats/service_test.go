@@ -153,14 +153,21 @@ func TestStatsService_Aggregate(t *testing.T) {
 	statsService := NewStatsService(statsRepository)
 
 	// Get stats
-	results := statsService.Aggregate("example.com", query, []string{"view", "download"})
+	result := statsService.Aggregate("example.com", query, []string{"view", "download"})
 
-	// Print map results
-	for metric, result := range results {
-		t.Logf("%v: %v", metric, result)
+	if result.TotalDownloads != 10 {
+		t.Errorf("TotalDownloads is not 10")
 	}
 
-	// Fail
-	t.Fail()
+	if result.TotalViews != 10 {
+		t.Errorf("TotalViews is not 10")
+	}
 
+	if result.UniqueViews != 1 {
+		t.Errorf("UniqueViews is not 1")
+	}
+
+	if result.UniqueDownloads != 1 {
+		t.Errorf("UniqueDownloads is not 1")
+	}
 }

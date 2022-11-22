@@ -1,12 +1,17 @@
 package stats
 
 import (
+	"fmt"
+	"time"
+
+	"github.com/WinterYukky/gorm-extra-clause-plugin/exclause"
+	"github.com/datacite/keeshond/internal/app/event"
 	"gorm.io/gorm"
 )
 
 type StatsRepositoryReader interface {
 	// For a specific repository return aggregates for specified metrics in the specified time query.
-	Aggregate(repoId string, query Query, metrics []string) map[string]int64
+	Aggregate(repoId string, query Query, metrics []string) AggregateResult
 	// For a specific repository return list of time series results for specified metrics in the specified time query.
 	Timeseries(repoId string, query Query, metrics []string) []map[string]int64
 	// For a specific repository return specified metrics for the specified time query and grouped by PID.
@@ -23,13 +28,61 @@ func NewStatsRepository(db *gorm.DB) *StatsRepository {
 	}
 }
 
-func (repository *StatsRepository) Aggregate(repoId string, query Query, metrics []string) map[string]int64 {
-	return map[string]int64{
-		"unique_views": 5,
-		"total_views": 10,
-		"unique_downloads": 10,
-		"total_downloads": 40,
-	}
+// func BaseQuery(repoId string, db *gorm.DB) *gorm.DB {
+// 	return db.
+// 	Clauses(
+// 		exclause.NewWith(
+// 			"time_period_deduped", db.Model(&event.Event{}).
+// 			Select("name, pid, session_id, toStartOfInterval(timestamp, INTERVAL 30 second) as interval_alias").
+// 			Scopes(RepoId(repoId)).
+// 			Group("name, pid, session_id, interval_alias order by interval_alias"),
+// 		),
+// 	).Table("time_period_deduped").
+// 	Select("countIf(name = 'view') as total_views, uniqIf(session_id, name = 'view') as unique_views, countIf(name = 'download') as total_downloads, uniqIf(session_id, name = 'download') as unique_downloads").
+// 	Group("name, pid").
+// 	Limit(10)
+// }
+
+// Function to get Query object with start and end set to beginning and end of the day
+
+
+// func GetTimestampScope(query Query) func (db *gorm.DB) *gorm.DB {
+// 	switch query.Period {
+// 	case "day":
+// 		return TimestampIsToday
+// 	case "7d":
+// 		return TimestampIn7Days(query.Start)
+// 	case "30d":
+// 		return TimestampIn30Days(query.Start)
+// 	case "custom":
+// 		return TimestampCustom(query.Start, query.End)
+// 	default:
+// 		return TimestampIsToday
+// 	}
+// }
+
+func (repository *StatsRepository) Aggregate(repoId string, query Query, metrics []string) AggregateResult {
+	var result AggregateResult
+
+	// Get timestamp scope from query start and end
+	timestampScope := TimestampCustom(query.Start, query.End)
+
+	repository.db.
+	Clauses(
+		exclause.NewWith(
+			"time_period_deduped", repository.db.Model(&event.Event{}).
+			Select("name, pid, session_id, toStartOfInterval(timestamp, INTERVAL 30 second) as interval_alias").
+			Scopes(RepoId(repoId), timestampScope).
+			Group("name, pid, session_id, interval_alias order by interval_alias"),
+		),
+	).Table("time_period_deduped").
+	Select("countIf(name = 'view') as total_views, uniqIf(session_id, name = 'view') as unique_views, countIf(name = 'download') as total_downloads, uniqIf(session_id, name = 'download') as unique_downloads").
+	Scan(&result)
+
+	// Debug print result
+	fmt.Println(result)
+
+	return result
 }
 
 func (repository *StatsRepository) Timeseries(repoId string, query Query, metrics []string) []map[string]int64 {
@@ -160,29 +213,60 @@ func (repository *StatsRepository) BreakdownByPID(repoId string, query Query, me
 // 	return repository.GetUniquesByPidForInterval(metricName, repo_id, TimestampIn30Days)
 // }
 
-// // Following are scopes for the event model that can be used
-// // to build up queries dynamically.
+// Following are scopes for the event model that can be used
+// to build up queries dynamically.
 
-// func NameAndRepoId(name string, repo_id string) func (db *gorm.DB) *gorm.DB {
-// 	return func (db *gorm.DB) *gorm.DB {
-// 	  return db.Where("name = ?", name).Where("repo_id = ?", repo_id)
-// 	}
-// }
+func NameAndRepoId(name string, repo_id string) func (db *gorm.DB) *gorm.DB {
+	return func (db *gorm.DB) *gorm.DB {
+	  return db.Where("name = ?", name).Where("repo_id = ?", repo_id)
+	}
+}
 
-// func PID(pid string) func (db *gorm.DB) *gorm.DB {
-// 	return func (db *gorm.DB) *gorm.DB {
-// 	  return db.Where("pid = ?", pid)
-// 	}
-// }
+func RepoId(repo_id string) func (db *gorm.DB) *gorm.DB {
+	return func (db *gorm.DB) *gorm.DB {
+	  return db.Where("repo_id = ?", repo_id)
+	}
+}
+
+func PID(pid string) func (db *gorm.DB) *gorm.DB {
+	return func (db *gorm.DB) *gorm.DB {
+	  return db.Where("pid = ?", pid)
+	}
+}
 
 // func TimestampIsToday(db *gorm.DB) *gorm.DB {
 // 	return db.Where("timestamp > today()")
 // }
 
-// func TimestampIn7Days(db *gorm.DB) *gorm.DB {
-// 	return db.Where("timestamp > subtractDays(now(), 7)")
+// func TimestampIn7Days(relativeDate time.Time) func(db *gorm.DB) *gorm.DB {
+// 	return func(db *gorm.DB) *gorm.DB {
+// 		return db.Where("timestamp > subtractDays(?, 7)", relativeDate)
+// 	}
 // }
 
-// func TimestampIn30Days(db *gorm.DB) *gorm.DB {
-// 	return db.Where("timestamp > subtractDays(now(), 30)")
+// func TimestampIn30Days(relativeDate time.Time) func(db *gorm.DB) *gorm.DB {
+// 	return func(db *gorm.DB) *gorm.DB {
+// 		return db.Where("timestamp > subtractDays(?, 30)", relativeDate)
+// 	}
 // }
+
+func TimestampCustom(start_date time.Time, end_date time.Time) func (db *gorm.DB) *gorm.DB {
+	return func (db *gorm.DB) *gorm.DB {
+	  return db.Where("timestamp > ?", start_date).Where("timestamp < ?", end_date)
+	}
+}
+
+func Paginate(page int, page_size int) func(db *gorm.DB) *gorm.DB {
+	return func (db *gorm.DB) *gorm.DB {
+	  if page == 0 {
+		page = 1
+	  }
+
+	  if page_size == 0 {
+		page_size = 100
+	  }
+
+	  offset := (page - 1) * page_size
+	  return db.Offset(offset).Limit(page_size)
+	}
+  }
