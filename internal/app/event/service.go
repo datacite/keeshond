@@ -87,6 +87,12 @@ func (service *EventService) CreateEvent(eventRequest *EventRequest) (Event, err
 	return event, err
 }
 
+func (service *EventService) CreateRaw(event Event) (Event, error) {
+	err := service.eventRepository.Create(&event)
+
+	return event, err
+}
+
 func (service *EventService) Validate(eventRequest *EventRequest) error {
 	// Http client
 	client := &http.Client{}
@@ -133,4 +139,25 @@ func checkDoiExistsInDataCite(doi string, url string, dataciteApiUrl string, cli
 	}
 
 	return nil
+}
+
+func CreateMockEvent(metricName string, repoId string, doi string, userId uint64, timestamp time.Time) Event {
+	// Construct fake URL from doi
+	url := "http://" + repoId + "/page/" + doi
+
+	// Generate session id
+	sessionId := session.GenerateSessionId(userId, timestamp)
+
+	// View event
+	return Event{
+		RepoId:    repoId,
+		Name:      metricName,
+		Useragent: "Mozilla/5.0 (compatible; FakeUser/1.0; +http://www.example.com/bot.html)",
+		ClientIp:  "127.0.0.1",
+		UserID:    userId,
+		SessionID: sessionId,
+		Url:       url,
+		Pid:       doi,
+		Timestamp: timestamp,
+	}
 }

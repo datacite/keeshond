@@ -119,7 +119,7 @@ func (repository *StatsRepository) BreakdownByPID(repoId string, query Query, pa
 	// Get timestamp scope from query start and end
 	timestampScope := TimestampCustom(query.Start, query.End)
 
-	repository.db.Debug().
+	repository.db.
 	Clauses(
 		exclause.NewWith(
 			"time_period_deduped", repository.db.Model(&event.Event{}).

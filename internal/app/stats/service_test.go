@@ -13,8 +13,38 @@ import (
 )
 
 type TestState struct {
-	conn *gorm.DB
+	conn   *gorm.DB
 	config *app.Config
+}
+
+func createMockEvents() []event.Event {
+	events := []event.Event{}
+
+	events = append(events, event.CreateMockEvent("view", "example.com", "10.1234/1", 123, time.Date(2022, 01, 01, 00, 00, 00, 000, time.Local)))
+	events = append(events, event.CreateMockEvent("view", "example.com", "10.1234/1", 123, time.Date(2022, 01, 01, 00, 00, 15, 000, time.Local)))
+	events = append(events, event.CreateMockEvent("view", "example.com", "10.1234/1", 123, time.Date(2022, 01, 01, 00, 00, 30, 000, time.Local)))
+	events = append(events, event.CreateMockEvent("view", "example.com", "10.1234/1", 123, time.Date(2022, 01, 01, 00, 10, 30, 000, time.Local)))
+	events = append(events, event.CreateMockEvent("download", "example.com", "10.1234/1", 123, time.Date(2022, 01, 01, 00, 00, 30, 000, time.Local)))
+	events = append(events, event.CreateMockEvent("download", "example.com", "10.1234/1", 123, time.Date(2022, 01, 01, 00, 10, 30, 000, time.Local)))
+	events = append(events, event.CreateMockEvent("view", "example.com", "10.1234/1", 124, time.Date(2022, 01, 01, 00, 11, 30, 000, time.Local)))
+	events = append(events, event.CreateMockEvent("view", "example.com", "10.1234/1", 124, time.Date(2022, 01, 01, 01, 00, 30, 000, time.Local)))
+	events = append(events, event.CreateMockEvent("view", "example.com", "10.1234/1", 124, time.Date(2022, 01, 01, 02, 00, 30, 000, time.Local)))
+	events = append(events, event.CreateMockEvent("download", "example.com", "10.1234/1", 124, time.Date(2022, 01, 01, 02, 00, 30, 000, time.Local)))
+
+	events = append(events, event.CreateMockEvent("view", "example.com", "10.1234/2", 123, time.Date(2022, 01, 01, 00, 00, 00, 000, time.Local)))
+	events = append(events, event.CreateMockEvent("view", "example.com", "10.1234/2", 123, time.Date(2022, 01, 01, 00, 00, 29, 000, time.Local)))
+	events = append(events, event.CreateMockEvent("view", "example.com", "10.1234/2", 124, time.Date(2022, 01, 01, 00, 00, 30, 000, time.Local)))
+	events = append(events, event.CreateMockEvent("view", "example.com", "10.1234/2", 123, time.Date(2022, 01, 01, 00, 10, 00, 000, time.Local)))
+	events = append(events, event.CreateMockEvent("download", "example.com", "10.1234/2", 123, time.Date(2022, 01, 01, 00, 00, 00, 000, time.Local)))
+	events = append(events, event.CreateMockEvent("download", "example.com", "10.1234/2", 124, time.Date(2022, 01, 01, 00, 00, 29, 000, time.Local)))
+	events = append(events, event.CreateMockEvent("download", "example.com", "10.1234/2", 124, time.Date(2022, 01, 01, 00, 00, 30, 000, time.Local)))
+	events = append(events, event.CreateMockEvent("download", "example.com", "10.1234/2", 123, time.Date(2022, 01, 01, 00, 10, 00, 000, time.Local)))
+	events = append(events, event.CreateMockEvent("view", "example.com", "10.1234/2", 123, time.Date(2022, 01, 01, 00, 11, 30, 000, time.Local)))
+	events = append(events, event.CreateMockEvent("view", "example.com", "10.1234/2", 123, time.Date(2022, 01, 01, 01, 00, 30, 000, time.Local)))
+	events = append(events, event.CreateMockEvent("view", "example.com", "10.1234/2", 123, time.Date(2022, 01, 01, 02, 00, 30, 000, time.Local)))
+	events = append(events, event.CreateMockEvent("download", "example.com", "10.1234/2", 124, time.Date(2022, 01, 01, 02, 00, 30, 000, time.Local)))
+
+	return events
 }
 
 func setupTestDB(config *app.Config) (*gorm.DB, error) {
@@ -42,7 +72,7 @@ func setupTestDB(config *app.Config) (*gorm.DB, error) {
 	return conn, nil
 }
 
-func setup() TestState{
+func setup() TestState {
 	// Test config
 	config := app.GetConfigFromEnv()
 	config.ValidateDoi = false
@@ -58,11 +88,12 @@ func setup() TestState{
 		println(err)
 	}
 
-
 	state := TestState{
-		conn: conn,
+		conn:   conn,
 		config: config,
 	}
+
+	mockEvents := createMockEvents()
 
 	// Setup repository and services
 	sessionRepository := session.NewSessionRepository(conn, config)
@@ -70,39 +101,9 @@ func setup() TestState{
 	eventRepository := event.NewEventRepository(conn, config)
 	eventService := event.NewEventService(eventRepository, sessionService, config)
 
-	// Create dummy event request
-
-	// Create array of fake dois
-	dois := []string{"10.1234/1", "10.1234/2", "10.1234/3", "10.1234/4", "10.1234/5", "10.1234/6", "10.1234/7", "10.1234/8", "10.1234/9", "10.1234/10"}
-
-	// Loop over dois and create view events
-	for _, doi := range dois {
-		// Construct fake URL from doi
-		url := "http://example.com/page" + doi
-
-		// View event
-		eventRequest := event.EventRequest{
-			Name: "view",
-			RepoId: "example.com",
-			Url: url,
-			Useragent: "Mozilla/5.0 (compatible; FakeUser/1.0; +http://www.example.com/bot.html)",
-			ClientIp: "127.0.0.1",
-			Pid: doi,
-		}
-
-		eventService.CreateEvent(&eventRequest)
-
-		// Download event
-		eventRequest = event.EventRequest{
-			Name: "download",
-			RepoId: "example.com",
-			Url: url,
-			Useragent: "Mozilla/5.0 (compatible; FakeUser/1.0; +http://www.example.com/bot.html)",
-			ClientIp: "127.0.0.1",
-			Pid: doi,
-		}
-
-		eventService.CreateEvent(&eventRequest)
+	// Insert mock events
+	for _, event := range mockEvents {
+		eventService.CreateRaw(event)
 	}
 
 	return state
@@ -136,17 +137,15 @@ func TestStatsService_Aggregate(t *testing.T) {
 	}
 
 	// Start of today
-	start := time.Now().Truncate(24 * time.Hour)
+	start := time.Date(2022, 01, 01, 00, 00, 00, 000, time.Local)
 
-	// End of today
+	// End of day
 	end := start.Add(24 * time.Hour)
 
 	// Construct query
 	query := Query{
 		Start: start,
-		End: end,
-		Period: "day",
-		Interval: "hour",
+		End:   end,
 	}
 
 	statsRepository := NewStatsRepository(conn)
@@ -155,20 +154,20 @@ func TestStatsService_Aggregate(t *testing.T) {
 	// Get stats
 	result := statsService.Aggregate("example.com", query)
 
-	if result.TotalDownloads != 10 {
-		t.Errorf("TotalDownloads is not 10")
+	if result.TotalDownloads != 7 {
+		t.Errorf("TotalDownloads is not 7 but got %d", result.TotalDownloads)
 	}
 
-	if result.TotalViews != 10 {
-		t.Errorf("TotalViews is not 10")
+	if result.TotalViews != 12 {
+		t.Errorf("TotalViews is not 12 but got %d", result.TotalViews)
 	}
 
-	if result.UniqueViews != 1 {
-		t.Errorf("UniqueViews is not 1")
+	if result.UniqueViews != 6 {
+		t.Errorf("UniqueViews is not 6 but got %d", result.UniqueViews)
 	}
 
-	if result.UniqueDownloads != 1 {
-		t.Errorf("UniqueDownloads is not 1")
+	if result.UniqueDownloads != 3 {
+		t.Errorf("UniqueDownloads is not 3 but got %d", result.UniqueDownloads)
 	}
 }
 
@@ -188,16 +187,16 @@ func TestStatsService_Timeseries(t *testing.T) {
 	statsService := NewStatsService(statsRepository)
 
 	// Start of today
-	start := time.Now().UTC().Truncate(24 * time.Hour)
+	start := time.Date(2022, 01, 01, 00, 00, 00, 000, time.Local)
 
 	// End of the day
 	end := start.Add(24 * time.Hour)
 
 	// Construct query for timeseries by hour
 	query := Query{
-		Start: start,
-		End: end,
-		Period: "day",
+		Start:    start,
+		End:      end,
+		Period:   "day",
 		Interval: "hour",
 	}
 
@@ -209,21 +208,21 @@ func TestStatsService_Timeseries(t *testing.T) {
 	}
 
 	// Get value representing current hour
-	currentHour := time.Now().Hour()
+	testHour := time.Date(2022, 01, 01, 00, 00, 00, 000, time.Local).Hour()
 	// Look through results and match current hour to date
 	for _, row := range result {
-		if row.Date.Hour() == currentHour {
-			if row.TotalDownloads != 10 {
-				t.Errorf("Downloads for current hour should be 10 but got %d", row.TotalDownloads)
+		if row.Date.Hour() == testHour {
+			if row.TotalDownloads != 5 {
+				t.Errorf("Downloads for current hour should be 5 but got %d", row.TotalDownloads)
 			}
-			if row.TotalViews != 10 {
-				t.Errorf("Views for current hour should be 10 but got %d", row.TotalViews)
+			if row.TotalViews != 8 {
+				t.Errorf("Views for current hour should be 8 but got %d", row.TotalViews)
 			}
-			if row.UniqueDownloads != 1 {
-				t.Errorf("Unique downloads for current hour should be 1 but got %d", row.UniqueDownloads)
+			if row.UniqueDownloads != 2 {
+				t.Errorf("Unique downloads for current hour should be 2 but got %d", row.UniqueDownloads)
 			}
-			if row.UniqueViews != 1 {
-				t.Errorf("Unique views for current hour should be 1 but got %d", row.UniqueViews)
+			if row.UniqueViews != 2 {
+				t.Errorf("Unique views for current hour should be 2 but got %d", row.UniqueViews)
 			}
 		}
 	}
@@ -245,23 +244,23 @@ func TestStatsService_BreakdownByPID(t *testing.T) {
 	statsService := NewStatsService(statsRepository)
 
 	// Start of today
-	start := time.Now().UTC().Truncate(24 * time.Hour)
+	start := time.Date(2022, 01, 01, 00, 00, 00, 000, time.Local)
 
 	// End of the day
 	end := start.Add(24 * time.Hour)
 
 	// Construct query for timeseries by hour
 	query := Query{
-		Start: start,
-		End: end,
-		Period: "day",
+		Start:    start,
+		End:      end,
+		Period:   "day",
 		Interval: "hour",
 	}
 
 	// Get stats
 	result := statsService.BreakdownByPID("example.com", query, 1, 100)
 
-	if len(result) != 10 {
-		t.Errorf("BreakdownByPID should have 10 rows to represent 10 dois")
+	if len(result) != 2 {
+		t.Errorf("BreakdownByPID should have 2 rows but got %d", len(result))
 	}
 }
