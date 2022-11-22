@@ -15,6 +15,10 @@ func (service *StatsService) Aggregate(repoId string, query Query, metrics []str
 	return service.repository.Aggregate(repoId, query, metrics)
 }
 
+func (service *StatsService) Timeseries(repoId string, query Query, metrics []string) []TimeseriesResult {
+	return service.repository.Timeseries(repoId, query, metrics)
+}
+
 // Total metric functions
 
 // func (service *StatsService) GetTotalInToday(metricName string, repoid string, pid string) PidStat {

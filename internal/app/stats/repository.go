@@ -1,19 +1,19 @@
 package stats
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/WinterYukky/gorm-extra-clause-plugin/exclause"
 	"github.com/datacite/keeshond/internal/app/event"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type StatsRepositoryReader interface {
 	// For a specific repository return aggregates for specified metrics in the specified time query.
 	Aggregate(repoId string, query Query, metrics []string) AggregateResult
 	// For a specific repository return list of time series results for specified metrics in the specified time query.
-	Timeseries(repoId string, query Query, metrics []string) []map[string]int64
+	Timeseries(repoId string, query Query, metrics []string) []TimeseriesResult
 	// For a specific repository return specified metrics for the specified time query and grouped by PID.
 	BreakdownByPID(repoId string, query Query, metrics []string, limit int, page int) []map[string]map[string]int64
 }
@@ -79,14 +79,58 @@ func (repository *StatsRepository) Aggregate(repoId string, query Query, metrics
 	Select("countIf(name = 'view') as total_views, uniqIf(session_id, name = 'view') as unique_views, countIf(name = 'download') as total_downloads, uniqIf(session_id, name = 'download') as unique_downloads").
 	Scan(&result)
 
-	// Debug print result
-	fmt.Println(result)
-
 	return result
 }
 
-func (repository *StatsRepository) Timeseries(repoId string, query Query, metrics []string) []map[string]int64 {
-	return nil
+func (repository *StatsRepository) Timeseries(repoId string, query Query, metrics []string) []TimeseriesResult {
+	var result []TimeseriesResult
+
+	// Get timestamp scope from query start and end
+	timestampScope := TimestampCustom(query.Start, query.End)
+
+	db := repository.db.
+	Clauses(
+		exclause.NewWith(
+			"time_period_deduped", repository.db.Model(&event.Event{}).
+			Select("name, pid, session_id, toStartOfInterval(timestamp, INTERVAL 30 second) as interval_alias").
+			Scopes(RepoId(repoId), timestampScope).
+			Group("name, pid, session_id, interval_alias order by interval_alias"),
+		),
+	).Table("time_period_deduped")
+
+	switch query.Interval {
+		case "day":
+		db = db.Select("toStartOfDay(interval_alias) as date, countIf(name = 'view') as total_views, uniqIf(session_id, name = 'view') as unique_views, countIf(name = 'download') as total_downloads, uniqIf(session_id, name = 'download') as unique_downloads")
+		case "month":
+		db = db.Select("toStartOfMonth(interval_alias) as date, countIf(name = 'view') as total_views, uniqIf(session_id, name = 'view') as unique_views, countIf(name = 'download') as total_downloads, uniqIf(session_id, name = 'download') as unique_downloads")
+		case "hour":
+		db = db.Select("toStartOfHour(interval_alias) as date, countIf(name = 'view') as total_views, uniqIf(session_id, name = 'view') as unique_views, countIf(name = 'download') as total_downloads, uniqIf(session_id, name = 'download') as unique_downloads")
+	}
+
+	db = db.Group("date")
+
+	switch query.Interval {
+		case "day":
+		db = db.Clauses(clause.OrderBy{
+			Expression: clause.Expr{SQL: "date WITH FILL FROM toStartOfDay(?) TO toStartOfDay(?) STEP INTERVAL 1 DAY", Vars: []interface{}{query.Start, query.End}, WithoutParentheses: true},
+		})
+		case "month":
+		db = db.Clauses(clause.OrderBy{
+			Expression: clause.Expr{SQL: "date WITH FILL FROM toStartOfMonth(?) TO toStartOfMonth(?) STEP INTERVAL 1 MONTH", Vars: []interface{}{query.Start, query.End}, WithoutParentheses: true},
+		})
+		case "hour":
+		db = db.Clauses(clause.OrderBy{
+			Expression: clause.Expr{SQL: "date WITH FILL FROM toStartOfHour(?) TO toStartOfHour(?) STEP INTERVAL 1 HOUR", Vars: []interface{}{query.Start, query.End}, WithoutParentheses: true},
+		})
+	}
+
+	db.Scan(&result)
+
+	// Debug print result
+//	fmt.Printf("%+v\n", result)
+
+
+	return result
 }
 
 func (repository *StatsRepository) BreakdownByPID(repoId string, query Query, metrics []string, limit int, page int) []map[string]map[string]int64 {
@@ -249,6 +293,10 @@ func PID(pid string) func (db *gorm.DB) *gorm.DB {
 // 		return db.Where("timestamp > subtractDays(?, 30)", relativeDate)
 // 	}
 // }
+
+func SelectDateByDay(db *gorm.DB) *gorm.DB {
+	return db.Select("toStartOfDay(interval_alias) as date")
+}
 
 func TimestampCustom(start_date time.Time, end_date time.Time) func (db *gorm.DB) *gorm.DB {
 	return func (db *gorm.DB) *gorm.DB {

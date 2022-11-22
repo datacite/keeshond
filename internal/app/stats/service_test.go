@@ -171,3 +171,61 @@ func TestStatsService_Aggregate(t *testing.T) {
 		t.Errorf("UniqueDownloads is not 1")
 	}
 }
+
+func TestStatsService_Timeseries(t *testing.T) {
+	// Test config
+	config := app.GetConfigFromEnv()
+	config.ValidateDoi = false
+	config.Database.Dbname = "keeshond_test"
+
+	conn, err := setupTestDB(config)
+	if err != nil {
+		// Fail
+		t.Errorf("Error connecting to test database: %s", err)
+	}
+
+	statsRepository := NewStatsRepository(conn)
+	statsService := NewStatsService(statsRepository)
+
+	// Start of today
+	start := time.Now().UTC().Truncate(24 * time.Hour)
+
+	// End of the day
+	end := start.Add(24 * time.Hour)
+
+	// Construct query for timeseries by hour
+	query := Query{
+		Start: start,
+		End: end,
+		Period: "day",
+		Interval: "hour",
+	}
+
+	// Get stats
+	result := statsService.Timeseries("example.com", query, []string{"view", "download"})
+
+	if len(result) != 24 {
+		t.Errorf("Timeseries should have 24 rows to represent 24 hours")
+	}
+
+	// Get value representing current hour
+	currentHour := time.Now().Hour()
+	// Look through results and match current hour to date
+	for _, row := range result {
+		if row.Date.Hour() == currentHour {
+			if row.TotalDownloads != 10 {
+				t.Errorf("Downloads for current hour should be 10 but got %d", row.TotalDownloads)
+			}
+			if row.TotalViews != 10 {
+				t.Errorf("Views for current hour should be 10 but got %d", row.TotalViews)
+			}
+			if row.UniqueDownloads != 1 {
+				t.Errorf("Unique downloads for current hour should be 1 but got %d", row.UniqueDownloads)
+			}
+			if row.UniqueViews != 1 {
+				t.Errorf("Unique views for current hour should be 1 but got %d", row.UniqueViews)
+			}
+		}
+	}
+
+}
