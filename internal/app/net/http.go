@@ -2,10 +2,12 @@ package net
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/datacite/keeshond/internal/app"
 	"github.com/datacite/keeshond/internal/app/event"
@@ -23,10 +25,14 @@ type Http struct {
 	config *app.Config
 	db     *gorm.DB
 
-	eventServiceDB *event.EventService
+	eventServiceDB        *event.EventService
 	eventServicePlausible *event.EventService
 
 	statsService *stats.StatsService
+}
+
+type ErrorResponse struct {
+	Error string `json:"error"`
 }
 
 func NewHttpServer(config *app.Config, db *gorm.DB) *Http {
@@ -77,7 +83,7 @@ func NewHttpServer(config *app.Config, db *gorm.DB) *Http {
 	s.router.Post("/api/metric", s.createMetric)
 
 	// Create API routes for getting aggregate for metric statistics
-	s.router.Get("/api/stats/aggregate/{repoId}", s.getStatistics)
+	s.router.Get("/api/stats/aggregate/{repoId}", s.getAggregate)
 
 	s.server.Handler = s.router
 
@@ -156,20 +162,114 @@ func (s *Http) createMetric(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *Http) getStatistics(w http.ResponseWriter, r *http.Request) {
+// Function to parse the period query into start and end time ranges
+func parsePeriodQuery(period string, date string) (time.Time, time.Time, error) {
+	// Set default start and end times
+
+	var startTime time.Time
+	var endTime time.Time
+
+	var relativeDate time.Time
+	// If date is empty set it to start of today
+	if date == "" {
+		today := time.Now()
+		relativeDate = time.Date(today.Year(), today.Month(), today.Day(), 0, 0, 0, 0, today.Location())
+	} else {
+		relativeDate, _ = time.Parse("2006-01-02", date)
+	}
+	// Set end date to always be end of the day to include all events
+	endTime = relativeDate
+
+	// Parse the period query
+	if period != "" {
+		switch period {
+		case "day":
+			// Start and end time are a full day based on the relative date
+			startTime = time.Date(relativeDate.Year(), relativeDate.Month(), relativeDate.Day(), 0, 0, 0, 0, relativeDate.Location())
+		case "7d":
+			startTime = relativeDate.AddDate(0, 0, -6)
+		case "30d":
+			startTime = relativeDate.AddDate(0, 0, -29)
+		case "custom":
+			// Parse date range string
+			if date != "" {
+				// Split date string into start and end date
+				dateRange := strings.Split(date, ",")
+				if len(dateRange) != 2 {
+					return startTime, endTime, errors.New("invalid date range")
+				}
+
+				var err error
+				// Parse start date
+				startTime, err = time.Parse("2006-01-02", dateRange[0])
+				if err != nil {
+					return startTime, endTime, errors.New("invalid start date")
+				}
+
+				// Parse end date
+				endTime, err = time.Parse("2006-01-02", dateRange[1])
+				if err != nil {
+					return startTime, endTime, errors.New("invalid end date")
+				}
+			} else {
+				return startTime, endTime, errors.New("no date specified for custom period")
+			}
+		default:
+			return startTime, endTime, errors.New("invalid period query")
+		}
+	}
+
+	endTime = endTime.AddDate(0, 0, 1).Add(-time.Second)
+
+	return startTime, endTime, nil
+}
+
+// Take an error and return a json response
+func errorResponse(w http.ResponseWriter, err error) {
+	// Create error response
+	errorResponse := ErrorResponse{
+		Error: err.Error(),
+	}
+
+	// Marshal error response to json
+	jsonResponse, _ := json.Marshal(errorResponse)
+
+	// Write error response to response writer
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusBadRequest)
+	w.Write(jsonResponse)
+}
+
+func (s *Http) getAggregate(w http.ResponseWriter, r *http.Request) {
 	repoId := chi.URLParam(r, "repoId")
+	period := r.URL.Query().Get("period")
+	date := r.URL.Query().Get("date")
+
+	startDate, endDate, err := parsePeriodQuery(period, date)
+	// Print start and end date
+	log.Println(startDate, endDate)
+
+	if err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	query := stats.Query{
+		Start:  startDate,
+		End:    endDate,
+		Period: period,
+	}
 
 	// Get total views for a repository in last 30 days
-	totalViewsLast30Days := s.statsService.GetTotalsByPidInLast30Days("view", repoId)
+	results := s.statsService.Aggregate(repoId, query)
+
+	// Put results inside results object
+	data := make(map[string]interface{})
+	data["results"] = results
 
 	// Set json response headers
 	w.Header().Set("Content-Type", "application/json")
 
-	// Serialise to json if not null
-	if totalViewsLast30Days != nil {
-		json.NewEncoder(w).Encode(totalViewsLast30Days)
-	} else {
-		// Return empty array if no data
-		json.NewEncoder(w).Encode([]int{})
-	}
+	// Serialise results but put inside a json object
+	json.NewEncoder(w).Encode(data)
 }
