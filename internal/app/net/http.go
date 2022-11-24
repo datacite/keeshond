@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -85,6 +86,7 @@ func NewHttpServer(config *app.Config, db *gorm.DB) *Http {
 	// Create API routes for getting metric statistics
 	s.router.Get("/api/stats/aggregate/{repoId}", s.getAggregate)
 	s.router.Get("/api/stats/timeseries/{repoId}", s.getTimeseries)
+	s.router.Get("/api/stats/breakdown/{repoId}", s.getBreakdown)
 
 	s.server.Handler = s.router
 
@@ -293,6 +295,48 @@ func (s *Http) getTimeseries(w http.ResponseWriter, r *http.Request) {
 
 	// Get total views for a repository in last 30 days
 	results := s.statsService.Timeseries(repoId, query)
+
+	// Put results inside results object
+	data := make(map[string]interface{})
+	data["results"] = results
+
+	// Set json response headers
+	w.Header().Set("Content-Type", "application/json")
+
+	// Serialise results but put inside a json object
+	json.NewEncoder(w).Encode(data)
+}
+
+func (s *Http) getBreakdown(w http.ResponseWriter, r *http.Request) {
+	repoId := chi.URLParam(r, "repoId")
+	period := r.URL.Query().Get("period")
+	date := r.URL.Query().Get("date")
+
+	// Get page and pageSize as integers from query string
+	page, err := strconv.Atoi(r.URL.Query().Get("page"))
+	if err != nil {
+		page = 1
+	}
+	pageSize, err := strconv.Atoi(r.URL.Query().Get("pageSize"))
+	if err != nil {
+		pageSize = 100
+	}
+
+	startDate, endDate, err := parsePeriodQuery(period, date)
+
+	if err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	query := stats.Query{
+		Start:  startDate,
+		End:    endDate,
+		Period: period,
+	}
+
+	// Get total views for a repository in last 30 days
+	results := s.statsService.BreakdownByPID(repoId, query, page, pageSize)
 
 	// Put results inside results object
 	data := make(map[string]interface{})
