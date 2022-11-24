@@ -82,8 +82,9 @@ func NewHttpServer(config *app.Config, db *gorm.DB) *Http {
 
 	s.router.Post("/api/metric", s.createMetric)
 
-	// Create API routes for getting aggregate for metric statistics
+	// Create API routes for getting metric statistics
 	s.router.Get("/api/stats/aggregate/{repoId}", s.getAggregate)
+	s.router.Get("/api/stats/timeseries/{repoId}", s.getTimeseries)
 
 	s.server.Handler = s.router
 
@@ -181,45 +182,42 @@ func parsePeriodQuery(period string, date string) (time.Time, time.Time, error) 
 	endTime = relativeDate
 
 	// Parse the period query
-	if period != "" {
-		switch period {
-		case "day":
-			// Start and end time are a full day based on the relative date
-			startTime = time.Date(relativeDate.Year(), relativeDate.Month(), relativeDate.Day(), 0, 0, 0, 0, relativeDate.Location())
-		case "7d":
-			startTime = relativeDate.AddDate(0, 0, -6)
-		case "30d":
-			startTime = relativeDate.AddDate(0, 0, -29)
-		case "custom":
-			// Parse date range string
-			if date != "" {
-				// Split date string into start and end date
-				dateRange := strings.Split(date, ",")
-				if len(dateRange) != 2 {
-					return startTime, endTime, errors.New("invalid date range")
-				}
-
-				var err error
-				// Parse start date
-				startTime, err = time.Parse("2006-01-02", dateRange[0])
-				if err != nil {
-					return startTime, endTime, errors.New("invalid start date")
-				}
-
-				// Parse end date
-				endTime, err = time.Parse("2006-01-02", dateRange[1])
-				if err != nil {
-					return startTime, endTime, errors.New("invalid end date")
-				}
-			} else {
-				return startTime, endTime, errors.New("no date specified for custom period")
+	switch period {
+	case "day":
+		// Start and end time are a full day based on the relative date
+		startTime = time.Date(relativeDate.Year(), relativeDate.Month(), relativeDate.Day(), 0, 0, 0, 0, relativeDate.Location())
+	case "7d":
+		startTime = relativeDate.AddDate(0, 0, -6)
+	case "custom":
+		// Parse date range string
+		if date != "" {
+			// Split date string into start and end date
+			dateRange := strings.Split(date, ",")
+			if len(dateRange) != 2 {
+				return startTime, endTime, errors.New("invalid date range")
 			}
-		default:
-			return startTime, endTime, errors.New("invalid period query")
+
+			var err error
+			// Parse start date
+			startTime, err = time.Parse("2006-01-02", dateRange[0])
+			if err != nil {
+				return startTime, endTime, errors.New("invalid start date")
+			}
+
+			// Parse end date
+			endTime, err = time.Parse("2006-01-02", dateRange[1])
+			if err != nil {
+				return startTime, endTime, errors.New("invalid end date")
+			}
+		} else {
+			return startTime, endTime, errors.New("no date specified for custom period")
 		}
+	case "30d":
+	default:
+		startTime = relativeDate.AddDate(0, 0, -29)
 	}
 
-	endTime = endTime.AddDate(0, 0, 1).Add(-time.Second)
+	endTime = endTime.AddDate(0, 0, 1)
 
 	return startTime, endTime, nil
 }
@@ -246,8 +244,6 @@ func (s *Http) getAggregate(w http.ResponseWriter, r *http.Request) {
 	date := r.URL.Query().Get("date")
 
 	startDate, endDate, err := parsePeriodQuery(period, date)
-	// Print start and end date
-	log.Println(startDate, endDate)
 
 	if err != nil {
 		errorResponse(w, err)
@@ -262,6 +258,40 @@ func (s *Http) getAggregate(w http.ResponseWriter, r *http.Request) {
 
 	// Get total views for a repository in last 30 days
 	results := s.statsService.Aggregate(repoId, query)
+
+	// Put results inside results object
+	data := make(map[string]interface{})
+	data["results"] = results
+
+	// Set json response headers
+	w.Header().Set("Content-Type", "application/json")
+
+	// Serialise results but put inside a json object
+	json.NewEncoder(w).Encode(data)
+}
+
+func (s *Http) getTimeseries(w http.ResponseWriter, r *http.Request) {
+	repoId := chi.URLParam(r, "repoId")
+	period := r.URL.Query().Get("period")
+	date := r.URL.Query().Get("date")
+	interval := r.URL.Query().Get("interval")
+
+	startDate, endDate, err := parsePeriodQuery(period, date)
+
+	if err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	query := stats.Query{
+		Start:  startDate,
+		End:    endDate,
+		Period: period,
+		Interval: interval,
+	}
+
+	// Get total views for a repository in last 30 days
+	results := s.statsService.Timeseries(repoId, query)
 
 	// Put results inside results object
 	data := make(map[string]interface{})
