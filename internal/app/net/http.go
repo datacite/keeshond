@@ -213,6 +213,7 @@ func parsePeriodQuery(period string, date string) (time.Time, time.Time, error) 
 			return startTime, endTime, errors.New("no date specified for custom period")
 		}
 	case "30d":
+		fallthrough
 	default:
 		startTime = relativeDate.AddDate(0, 0, -29)
 	}

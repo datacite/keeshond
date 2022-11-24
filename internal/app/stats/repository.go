@@ -71,7 +71,7 @@ func (repository *StatsRepository) Timeseries(repoId string, query Query) []Time
 	// Get timestamp scope from query start and end
 	timestampScope := TimestampCustom(query.Start, query.End)
 
-	db := repository.db.
+	db := repository.db.Debug().
 		Clauses(
 			exclause.NewWith(
 				"time_period_deduped", repository.db.Model(&event.Event{}).
@@ -87,6 +87,7 @@ func (repository *StatsRepository) Timeseries(repoId string, query Query) []Time
 	case "hour":
 		db = db.Select("toStartOfHour(interval_alias) as date, countIf(name = 'view') as total_views, uniqIf(session_id, name = 'view') as unique_views, countIf(name = 'download') as total_downloads, uniqIf(session_id, name = 'download') as unique_downloads")
 	case "day":
+		fallthrough
 	default:
 		db = db.Select("toStartOfDay(interval_alias) as date, countIf(name = 'view') as total_views, uniqIf(session_id, name = 'view') as unique_views, countIf(name = 'download') as total_downloads, uniqIf(session_id, name = 'download') as unique_downloads")
 	}
@@ -96,13 +97,14 @@ func (repository *StatsRepository) Timeseries(repoId string, query Query) []Time
 	switch query.Interval {
 	case "month":
 		db = db.Clauses(clause.OrderBy{
-			Expression: clause.Expr{SQL: "date WITH FILL FROM toStartOfMonth(?) TO toStartOfMonth(?) STEP INTERVAL 1 MONTH", Vars: []interface{}{query.Start, query.End}, WithoutParentheses: true},
+			Expression: clause.Expr{SQL: "date WITH FILL FROM toStartOfMonth(?) TO toStartOfMonth(?) STEP INTERVAL 1 MONTH", Vars: []interface{}{query.Start, query.End.AddDate(0, 1, 0)}, WithoutParentheses: true},
 		})
 	case "hour":
 		db = db.Clauses(clause.OrderBy{
 			Expression: clause.Expr{SQL: "date WITH FILL FROM toStartOfHour(?) TO toStartOfHour(?) STEP INTERVAL 1 HOUR", Vars: []interface{}{query.Start, query.End}, WithoutParentheses: true},
 		})
 	case "day":
+		fallthrough
 	default:
 		db = db.Clauses(clause.OrderBy{
 			Expression: clause.Expr{SQL: "date WITH FILL FROM toStartOfDay(?) TO toStartOfDay(?) STEP INTERVAL 1 DAY", Vars: []interface{}{query.Start, query.End}, WithoutParentheses: true},
