@@ -84,6 +84,7 @@ func (repository *StatsRepository) Timeseries(repoId string, query Query) []Time
 
 	switch query.Interval {
 		case "day":
+		default:
 		db = db.Select("toStartOfDay(interval_alias) as date, countIf(name = 'view') as total_views, uniqIf(session_id, name = 'view') as unique_views, countIf(name = 'download') as total_downloads, uniqIf(session_id, name = 'download') as unique_downloads")
 		case "month":
 		db = db.Select("toStartOfMonth(interval_alias) as date, countIf(name = 'view') as total_views, uniqIf(session_id, name = 'view') as unique_views, countIf(name = 'download') as total_downloads, uniqIf(session_id, name = 'download') as unique_downloads")
@@ -95,6 +96,7 @@ func (repository *StatsRepository) Timeseries(repoId string, query Query) []Time
 
 	switch query.Interval {
 		case "day":
+		default:
 		db = db.Clauses(clause.OrderBy{
 			Expression: clause.Expr{SQL: "date WITH FILL FROM toStartOfDay(?) TO toStartOfDay(?) STEP INTERVAL 1 DAY", Vars: []interface{}{query.Start, query.End}, WithoutParentheses: true},
 		})
