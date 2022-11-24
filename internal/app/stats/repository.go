@@ -1,7 +1,6 @@
 package stats
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/WinterYukky/gorm-extra-clause-plugin/exclause"
@@ -135,9 +134,6 @@ func (repository *StatsRepository) BreakdownByPID(repoId string, query Query, pa
 		Group("pid").
 		Scopes(Paginate(page, pageSize)).
 		Scan(&result)
-
-	// Debug print result
-	fmt.Printf("%+v\n", result)
 
 	return result
 }
