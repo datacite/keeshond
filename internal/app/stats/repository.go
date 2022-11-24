@@ -20,7 +20,7 @@ type StatsRepositoryReader interface {
 }
 
 type StatsRepository struct {
-	db 		*gorm.DB
+	db *gorm.DB
 }
 
 func NewStatsRepository(db *gorm.DB) *StatsRepository {
@@ -44,7 +44,6 @@ func NewStatsRepository(db *gorm.DB) *StatsRepository {
 // 	Limit(10)
 // }
 
-
 func (repository *StatsRepository) Aggregate(repoId string, query Query) AggregateResult {
 	var result AggregateResult
 
@@ -52,16 +51,16 @@ func (repository *StatsRepository) Aggregate(repoId string, query Query) Aggrega
 	timestampScope := TimestampCustom(query.Start, query.End)
 
 	repository.db.
-	Clauses(
-		exclause.NewWith(
-			"time_period_deduped", repository.db.Model(&event.Event{}).
-			Select("name, pid, session_id, toStartOfInterval(timestamp, INTERVAL 30 second) as interval_alias").
-			Scopes(RepoId(repoId), timestampScope).
-			Group("name, pid, session_id, interval_alias order by interval_alias"),
-		),
-	).Table("time_period_deduped").
-	Select("countIf(name = 'view') as total_views, uniqIf(session_id, name = 'view') as unique_views, countIf(name = 'download') as total_downloads, uniqIf(session_id, name = 'download') as unique_downloads").
-	Scan(&result)
+		Clauses(
+			exclause.NewWith(
+				"time_period_deduped", repository.db.Model(&event.Event{}).
+					Select("name, pid, session_id, toStartOfInterval(timestamp, INTERVAL 30 second) as interval_alias").
+					Scopes(RepoId(repoId), timestampScope).
+					Group("name, pid, session_id, interval_alias order by interval_alias"),
+			),
+		).Table("time_period_deduped").
+		Select("countIf(name = 'view') as total_views, uniqIf(session_id, name = 'view') as unique_views, countIf(name = 'download') as total_downloads, uniqIf(session_id, name = 'download') as unique_downloads").
+		Scan(&result)
 
 	return result
 }
@@ -73,40 +72,40 @@ func (repository *StatsRepository) Timeseries(repoId string, query Query) []Time
 	timestampScope := TimestampCustom(query.Start, query.End)
 
 	db := repository.db.
-	Clauses(
-		exclause.NewWith(
-			"time_period_deduped", repository.db.Model(&event.Event{}).
-			Select("name, pid, session_id, toStartOfInterval(timestamp, INTERVAL 30 second) as interval_alias").
-			Scopes(RepoId(repoId), timestampScope).
-			Group("name, pid, session_id, interval_alias order by interval_alias"),
-		),
-	).Table("time_period_deduped")
+		Clauses(
+			exclause.NewWith(
+				"time_period_deduped", repository.db.Model(&event.Event{}).
+					Select("name, pid, session_id, toStartOfInterval(timestamp, INTERVAL 30 second) as interval_alias").
+					Scopes(RepoId(repoId), timestampScope).
+					Group("name, pid, session_id, interval_alias order by interval_alias"),
+			),
+		).Table("time_period_deduped")
 
 	switch query.Interval {
-		case "day":
-		default:
-		db = db.Select("toStartOfDay(interval_alias) as date, countIf(name = 'view') as total_views, uniqIf(session_id, name = 'view') as unique_views, countIf(name = 'download') as total_downloads, uniqIf(session_id, name = 'download') as unique_downloads")
-		case "month":
+	case "month":
 		db = db.Select("toStartOfMonth(interval_alias) as date, countIf(name = 'view') as total_views, uniqIf(session_id, name = 'view') as unique_views, countIf(name = 'download') as total_downloads, uniqIf(session_id, name = 'download') as unique_downloads")
-		case "hour":
+	case "hour":
 		db = db.Select("toStartOfHour(interval_alias) as date, countIf(name = 'view') as total_views, uniqIf(session_id, name = 'view') as unique_views, countIf(name = 'download') as total_downloads, uniqIf(session_id, name = 'download') as unique_downloads")
+	case "day":
+	default:
+		db = db.Select("toStartOfDay(interval_alias) as date, countIf(name = 'view') as total_views, uniqIf(session_id, name = 'view') as unique_views, countIf(name = 'download') as total_downloads, uniqIf(session_id, name = 'download') as unique_downloads")
 	}
 
 	db = db.Group("date")
 
 	switch query.Interval {
-		case "day":
-		default:
-		db = db.Clauses(clause.OrderBy{
-			Expression: clause.Expr{SQL: "date WITH FILL FROM toStartOfDay(?) TO toStartOfDay(?) STEP INTERVAL 1 DAY", Vars: []interface{}{query.Start, query.End}, WithoutParentheses: true},
-		})
-		case "month":
+	case "month":
 		db = db.Clauses(clause.OrderBy{
 			Expression: clause.Expr{SQL: "date WITH FILL FROM toStartOfMonth(?) TO toStartOfMonth(?) STEP INTERVAL 1 MONTH", Vars: []interface{}{query.Start, query.End}, WithoutParentheses: true},
 		})
-		case "hour":
+	case "hour":
 		db = db.Clauses(clause.OrderBy{
 			Expression: clause.Expr{SQL: "date WITH FILL FROM toStartOfHour(?) TO toStartOfHour(?) STEP INTERVAL 1 HOUR", Vars: []interface{}{query.Start, query.End}, WithoutParentheses: true},
+		})
+	case "day":
+	default:
+		db = db.Clauses(clause.OrderBy{
+			Expression: clause.Expr{SQL: "date WITH FILL FROM toStartOfDay(?) TO toStartOfDay(?) STEP INTERVAL 1 DAY", Vars: []interface{}{query.Start, query.End}, WithoutParentheses: true},
 		})
 	}
 
@@ -122,18 +121,18 @@ func (repository *StatsRepository) BreakdownByPID(repoId string, query Query, pa
 	timestampScope := TimestampCustom(query.Start, query.End)
 
 	repository.db.
-	Clauses(
-		exclause.NewWith(
-			"time_period_deduped", repository.db.Model(&event.Event{}).
-			Select("name, pid, session_id, toStartOfInterval(timestamp, INTERVAL 30 second) as interval_alias").
-			Scopes(RepoId(repoId), timestampScope).
-			Group("name, pid, session_id, interval_alias order by interval_alias"),
-		),
-	).Table("time_period_deduped").
-	Select("pid, countIf(name = 'view') as total_views, uniqIf(session_id, name = 'view') as unique_views, countIf(name = 'download') as total_downloads, uniqIf(session_id, name = 'download') as unique_downloads").
-	Group("pid").
-	Scopes(Paginate(page, pageSize)).
-	Scan(&result)
+		Clauses(
+			exclause.NewWith(
+				"time_period_deduped", repository.db.Model(&event.Event{}).
+					Select("name, pid, session_id, toStartOfInterval(timestamp, INTERVAL 30 second) as interval_alias").
+					Scopes(RepoId(repoId), timestampScope).
+					Group("name, pid, session_id, interval_alias order by interval_alias"),
+			),
+		).Table("time_period_deduped").
+		Select("pid, countIf(name = 'view') as total_views, uniqIf(session_id, name = 'view') as unique_views, countIf(name = 'download') as total_downloads, uniqIf(session_id, name = 'download') as unique_downloads").
+		Group("pid").
+		Scopes(Paginate(page, pageSize)).
+		Scan(&result)
 
 	// Debug print result
 	fmt.Printf("%+v\n", result)
@@ -144,21 +143,21 @@ func (repository *StatsRepository) BreakdownByPID(repoId string, query Query, pa
 // Following are scopes for the event model that can be used
 // to build up queries dynamically.
 
-func NameAndRepoId(name string, repo_id string) func (db *gorm.DB) *gorm.DB {
-	return func (db *gorm.DB) *gorm.DB {
-	  return db.Where("name = ?", name).Where("repo_id = ?", repo_id)
+func NameAndRepoId(name string, repo_id string) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Where("name = ?", name).Where("repo_id = ?", repo_id)
 	}
 }
 
-func RepoId(repo_id string) func (db *gorm.DB) *gorm.DB {
-	return func (db *gorm.DB) *gorm.DB {
-	  return db.Where("repo_id = ?", repo_id)
+func RepoId(repo_id string) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Where("repo_id = ?", repo_id)
 	}
 }
 
-func PID(pid string) func (db *gorm.DB) *gorm.DB {
-	return func (db *gorm.DB) *gorm.DB {
-	  return db.Where("pid = ?", pid)
+func PID(pid string) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Where("pid = ?", pid)
 	}
 }
 
@@ -166,23 +165,23 @@ func SelectDateByDay(db *gorm.DB) *gorm.DB {
 	return db.Select("toStartOfDay(interval_alias) as date")
 }
 
-func TimestampCustom(start_date time.Time, end_date time.Time) func (db *gorm.DB) *gorm.DB {
-	return func (db *gorm.DB) *gorm.DB {
-	  return db.Where("timestamp > ?", start_date).Where("timestamp < ?", end_date)
+func TimestampCustom(start_date time.Time, end_date time.Time) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Where("timestamp > ?", start_date).Where("timestamp < ?", end_date)
 	}
 }
 
 func Paginate(page int, page_size int) func(db *gorm.DB) *gorm.DB {
-	return func (db *gorm.DB) *gorm.DB {
-	  if page == 0 {
-		page = 1
-	  }
+	return func(db *gorm.DB) *gorm.DB {
+		if page == 0 {
+			page = 1
+		}
 
-	  if page_size == 0 {
-		page_size = 100
-	  }
+		if page_size == 0 {
+			page_size = 100
+		}
 
-	  offset := (page - 1) * page_size
-	  return db.Offset(offset).Limit(page_size)
+		offset := (page - 1) * page_size
+		return db.Offset(offset).Limit(page_size)
 	}
-  }
+}
