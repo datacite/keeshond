@@ -28,21 +28,6 @@ func NewStatsRepository(db *gorm.DB) *StatsRepository {
 	}
 }
 
-// func BaseQuery(repoId string, db *gorm.DB) *gorm.DB {
-// 	return db.
-// 	Clauses(
-// 		exclause.NewWith(
-// 			"time_period_deduped", db.Model(&event.Event{}).
-// 			Select("name, pid, session_id, toStartOfInterval(timestamp, INTERVAL 30 second) as interval_alias").
-// 			Scopes(RepoId(repoId)).
-// 			Group("name, pid, session_id, interval_alias order by interval_alias"),
-// 		),
-// 	).Table("time_period_deduped").
-// 	Select("countIf(name = 'view') as total_views, uniqIf(session_id, name = 'view') as unique_views, countIf(name = 'download') as total_downloads, uniqIf(session_id, name = 'download') as unique_downloads").
-// 	Group("name, pid").
-// 	Limit(10)
-// }
-
 func (repository *StatsRepository) Aggregate(repoId string, query Query) AggregateResult {
 	var result AggregateResult
 
