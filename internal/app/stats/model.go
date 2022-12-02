@@ -25,12 +25,6 @@ type BreakdownResult struct {
 	UniqueDownloads int64 `json:"unique_downloads"`
 }
 
-type PidStat struct {
-	Metric 		string `json:"metric"`
-	Pid    	  	string `json:"pid"`
-	Count  	  	int64  `json:"count"`
-}
-
 type Query struct {
 	Start 		time.Time // Beginning of the query period
 	End 		time.Time // End of the query period
