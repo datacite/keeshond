@@ -29,8 +29,8 @@ func (service *StatsService) BreakdownByPID(repoId string, query Query, page int
 	return service.repository.BreakdownByPID(repoId, query, page, pageSize)
 }
 
-func (service *StatsService) CountBreakdownByPID(repoId string, query Query) int64 {
-	return service.repository.CountBreakdownByPID(repoId, query)
+func (service *StatsService) CountUniquePID(repoId string, query Query) int64 {
+	return service.repository.CountUniquePID(repoId, query)
 }
 
 

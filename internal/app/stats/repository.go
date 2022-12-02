@@ -16,8 +16,8 @@ type StatsRepositoryReader interface {
 	Timeseries(repoId string, query Query) []TimeseriesResult
 	// For a specific repository return for the specified time query and grouped by PID.
 	BreakdownByPID(repoId string, query Query, limit int, page int) []BreakdownResult
-	// Return total number of stats for PID breakdown.
-	CountBreakdownByPID(repoId string, query Query) int64
+	// Return count of unique PIDs for repository over time period.
+	CountUniquePID(repoId string, query Query) int64
 }
 
 type StatsRepository struct {
@@ -125,7 +125,7 @@ func (repository *StatsRepository) BreakdownByPID(repoId string, query Query, pa
 	return result
 }
 
-func (repository *StatsRepository) CountBreakdownByPID(repoId string, query Query) int64 {
+func (repository *StatsRepository) CountUniquePID(repoId string, query Query) int64 {
 	var count int64
 
 	// Get timestamp scope from query start and end

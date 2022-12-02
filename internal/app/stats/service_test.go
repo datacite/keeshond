@@ -265,7 +265,7 @@ func TestStatsService_BreakdownByPID(t *testing.T) {
 	}
 }
 
-func TestStatsService_CountBreakdownByPID(t *testing.T) {
+func TestStatsService_CountUniquePID(t *testing.T) {
 	// Test config
 	config := app.GetConfigFromEnv()
 	config.ValidateDoi = false
@@ -294,9 +294,9 @@ func TestStatsService_CountBreakdownByPID(t *testing.T) {
 	}
 
 	// Get stats
-	result := statsService.CountBreakdownByPID("example.com", query)
+	result := statsService.CountUniquePID("example.com", query)
 
 	if result != 2 {
-		t.Errorf("CountBreakdownByPID should have returned 2 but got %d", result)
+		t.Errorf("CountUniquePID should have returned 2 but got %d", result)
 	}
 }
