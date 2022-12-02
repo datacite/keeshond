@@ -29,6 +29,10 @@ func (service *StatsService) BreakdownByPID(repoId string, query Query, page int
 	return service.repository.BreakdownByPID(repoId, query, page, pageSize)
 }
 
+func (service *StatsService) CountBreakdownByPID(repoId string, query Query) int64 {
+	return service.repository.CountBreakdownByPID(repoId, query)
+}
+
 
 // Function to parse a period string into start and end time ranges relative to date
 func ParsePeriodString(period string, date string) (time.Time, time.Time, error) {

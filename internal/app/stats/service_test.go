@@ -264,3 +264,39 @@ func TestStatsService_BreakdownByPID(t *testing.T) {
 		t.Errorf("BreakdownByPID should have 2 rows but got %d", len(result))
 	}
 }
+
+func TestStatsService_CountBreakdownByPID(t *testing.T) {
+	// Test config
+	config := app.GetConfigFromEnv()
+	config.ValidateDoi = false
+	config.Database.Dbname = "keeshond_test"
+
+	conn, err := setupTestDB(config)
+	if err != nil {
+		// Fail
+		t.Errorf("Error connecting to test database: %s", err)
+	}
+
+	statsRepository := NewStatsRepository(conn)
+	statsService := NewStatsService(statsRepository)
+
+	// Start of today
+	start := time.Date(2022, 01, 01, 00, 00, 00, 000, time.Local)
+
+	// End of the day
+	end := start.Add(24 * time.Hour)
+
+	// Construct query for timeseries by hour
+	query := Query{
+		Start:  start,
+		End:    end,
+		Period: "custom",
+	}
+
+	// Get stats
+	result := statsService.CountBreakdownByPID("example.com", query)
+
+	if result != 2 {
+		t.Errorf("CountBreakdownByPID should have returned 2 but got %d", result)
+	}
+}
