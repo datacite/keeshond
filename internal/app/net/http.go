@@ -2,13 +2,11 @@ package net
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/datacite/keeshond/internal/app"
 	"github.com/datacite/keeshond/internal/app/event"
@@ -165,66 +163,6 @@ func (s *Http) createMetric(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// Function to parse the period query into start and end time ranges
-func parsePeriodQuery(period string, date string) (time.Time, time.Time, error) {
-	// Set default start and end times
-
-	var startTime time.Time
-	var endTime time.Time
-
-	var relativeDate time.Time
-	// If date is empty set it to start of today
-	if date == "" {
-		today := time.Now()
-		relativeDate = time.Date(today.Year(), today.Month(), today.Day(), 0, 0, 0, 0, today.Location())
-	} else {
-		relativeDate, _ = time.Parse("2006-01-02", date)
-	}
-	// Set end date to always be end of the day to include all events
-	endTime = relativeDate
-
-	// Parse the period query
-	switch period {
-	case "day":
-		// Start and end time are a full day based on the relative date
-		startTime = time.Date(relativeDate.Year(), relativeDate.Month(), relativeDate.Day(), 0, 0, 0, 0, relativeDate.Location())
-	case "7d":
-		startTime = relativeDate.AddDate(0, 0, -6)
-	case "custom":
-		// Parse date range string
-		if date != "" {
-			// Split date string into start and end date
-			dateRange := strings.Split(date, ",")
-			if len(dateRange) != 2 {
-				return startTime, endTime, errors.New("invalid date range")
-			}
-
-			var err error
-			// Parse start date
-			startTime, err = time.Parse("2006-01-02", dateRange[0])
-			if err != nil {
-				return startTime, endTime, errors.New("invalid start date")
-			}
-
-			// Parse end date
-			endTime, err = time.Parse("2006-01-02", dateRange[1])
-			if err != nil {
-				return startTime, endTime, errors.New("invalid end date")
-			}
-		} else {
-			return startTime, endTime, errors.New("no date specified for custom period")
-		}
-	case "30d":
-		fallthrough
-	default:
-		startTime = relativeDate.AddDate(0, 0, -29)
-	}
-
-	endTime = endTime.AddDate(0, 0, 1)
-
-	return startTime, endTime, nil
-}
-
 // Take an error and return a json response
 func errorResponse(w http.ResponseWriter, err error) {
 	// Create error response
@@ -246,7 +184,7 @@ func (s *Http) getAggregate(w http.ResponseWriter, r *http.Request) {
 	period := r.URL.Query().Get("period")
 	date := r.URL.Query().Get("date")
 
-	startDate, endDate, err := parsePeriodQuery(period, date)
+	startDate, endDate, err := stats.ParsePeriodString(period, date)
 
 	if err != nil {
 		errorResponse(w, err)
@@ -279,7 +217,7 @@ func (s *Http) getTimeseries(w http.ResponseWriter, r *http.Request) {
 	date := r.URL.Query().Get("date")
 	interval := r.URL.Query().Get("interval")
 
-	startDate, endDate, err := parsePeriodQuery(period, date)
+	startDate, endDate, err := stats.ParsePeriodString(period, date)
 
 	if err != nil {
 		errorResponse(w, err)
@@ -322,7 +260,7 @@ func (s *Http) getBreakdown(w http.ResponseWriter, r *http.Request) {
 		pageSize = 100
 	}
 
-	startDate, endDate, err := parsePeriodQuery(period, date)
+	startDate, endDate, err := stats.ParsePeriodString(period, date)
 
 	if err != nil {
 		errorResponse(w, err)
