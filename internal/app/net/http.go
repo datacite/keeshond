@@ -194,7 +194,6 @@ func (s *Http) getAggregate(w http.ResponseWriter, r *http.Request) {
 	query := stats.Query{
 		Start:  startDate,
 		End:    endDate,
-		Period: period,
 	}
 
 	// Get total views for a repository in query period
@@ -227,7 +226,6 @@ func (s *Http) getTimeseries(w http.ResponseWriter, r *http.Request) {
 	query := stats.Query{
 		Start:  startDate,
 		End:    endDate,
-		Period: period,
 		Interval: interval,
 	}
 
@@ -270,7 +268,6 @@ func (s *Http) getBreakdown(w http.ResponseWriter, r *http.Request) {
 	query := stats.Query{
 		Start:  startDate,
 		End:    endDate,
-		Period: period,
 	}
 
 	// Get total views for a repository based on query
