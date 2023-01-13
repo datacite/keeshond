@@ -197,7 +197,7 @@ func (s *Http) getAggregate(w http.ResponseWriter, r *http.Request) {
 		Period: period,
 	}
 
-	// Get total views for a repository in last 30 days
+	// Get total views for a repository in query period
 	results := s.statsService.Aggregate(repoId, query)
 
 	// Put results inside results object
@@ -231,7 +231,7 @@ func (s *Http) getTimeseries(w http.ResponseWriter, r *http.Request) {
 		Interval: interval,
 	}
 
-	// Get total views for a repository in last 30 days
+	// Get total views for a repository in query period
 	results := s.statsService.Timeseries(repoId, query)
 
 	// Put results inside results object
@@ -273,7 +273,7 @@ func (s *Http) getBreakdown(w http.ResponseWriter, r *http.Request) {
 		Period: period,
 	}
 
-	// Get total views for a repository in last 30 days
+	// Get total views for a repository based on query
 	results := s.statsService.BreakdownByPID(repoId, query, page, pageSize)
 
 	// Put results inside results object
