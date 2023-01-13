@@ -71,9 +71,9 @@ func main() {
 					}
 
 					// Parse compressed from fifth cli argument if present or default to false
-					compressed := false
+					addCompressedHeader := false
 					if cCtx.Args().Get(3) == "true" {
-						compressed = true
+						addCompressedHeader = true
 					}
 
 					// Get configuration from environment variables.
@@ -89,7 +89,7 @@ func main() {
 					reportsService := reports.NewReportsService(statsService)
 
 					// Generate report
-					generateReport, err := reportsService.GenerateDatasetUsageReport(repoId, beginDate, endDate, compressed)
+					generateReport, err := reportsService.GenerateDatasetUsageReport(repoId, beginDate, endDate, addCompressedHeader)
 
 					if err != nil {
 						return err
