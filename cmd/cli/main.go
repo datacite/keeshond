@@ -78,7 +78,6 @@ func main() {
 
 					// Get configuration from environment variables.
 					var config = app.GetConfigFromEnv()
-					config.ValidateDoi = false
 
 					// Setup database connection
 					conn := createDB(config)
