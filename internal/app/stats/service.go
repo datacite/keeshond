@@ -6,6 +6,13 @@ import (
 	"time"
 )
 
+type StatsServiceInterface interface {
+	Aggregate(repoId string, query Query) AggregateResult
+	Timeseries(repoId string, query Query) []TimeseriesResult
+	BreakdownByPID(repoId string, query Query, page int, pageSize int) []BreakdownResult
+	CountUniquePID(repoId string, query Query) int64
+}
+
 type StatsService struct {
 	repository StatsRepositoryReader
 }
