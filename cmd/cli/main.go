@@ -90,7 +90,9 @@ func main() {
 					}
 
 					// Keep calling the generateReport function until it returns nil
+					index := 0
 					for {
+						index++
 						report, err := generateReport()
 
 						if err != nil {
@@ -106,7 +108,7 @@ func main() {
 							return err
 						}
 
-						filename := fmt.Sprintf("%s-%s-%s.json", repoId, beginDate.Format("2006-01-02"), endDate.Format("2006-01-02"))
+						filename := fmt.Sprintf("%s-%s-%s-%d.json", repoId, beginDate.Format("2006-01-02"), endDate.Format("2006-01-02"), index)
 						f, err := os.Create(filename)
 						if err != nil {
 							return err
