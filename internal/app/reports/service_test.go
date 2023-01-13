@@ -104,7 +104,7 @@ func TestGenerateDatasetUsageReport(t *testing.T) {
 	endDate := time.Date(2018, 12, 31, 0, 0, 0, 0, time.UTC)
 
 	// Generate the report, returns a function that can be called to get the report
-	generateReport, err := service.GenerateDatasetUsageReport("datacite", beginDate, endDate)
+	generateReport, err := service.GenerateDatasetUsageReport("datacite", beginDate, endDate, false)
 
 	if err != nil {
 		t.Error(err)

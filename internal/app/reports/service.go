@@ -22,7 +22,7 @@ func NewReportsService(statsService stats.StatsServiceInterface) *ReportsService
 // It returns a function to generate part or the full report depending on number of results
 // A nil pointer is returned when the callback function is called and there are no results
 // If there are more than 50,000 results, the report results should be compressed and an exception is added to the report header to signify this.
-func (service *ReportsService) GenerateDatasetUsageReport(repoId string, startDate time.Time, endDate time.Time) (func() (*CounterDatasetReport, error), error) {
+func (service *ReportsService) GenerateDatasetUsageReport(repoId string, startDate time.Time, endDate time.Time, compressed bool) (func() (*CounterDatasetReport, error), error) {
 	// Create stats query object
 	query := stats.Query {
 		Start: startDate,
@@ -73,7 +73,8 @@ func (service *ReportsService) GenerateDatasetUsageReport(repoId string, startDa
 			// return error
 			return nil, errors.New("No results found for this query")
 
-		} else if len(results) > reportSize {
+		}
+		if compressed {
 			// Add exception that this will be compressed report
 			exceptions = []Exception{
 				Exception{
