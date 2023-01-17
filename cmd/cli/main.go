@@ -70,10 +70,35 @@ func main() {
 						return err
 					}
 
-					// Parse compressed from fifth cli argument if present or default to false
+					// Parse compressed from third cli argument if present or default to false
 					addCompressedHeader := false
 					if cCtx.Args().Get(3) == "true" {
 						addCompressedHeader = true
+					}
+
+					// Parse platform from fourth cli argument if present or leave empty
+					platform := ""
+					if cCtx.Args().Get(4) != "" {
+						platform = cCtx.Args().Get(4)
+					}
+
+					// Parse publisher from fifth cli argument if present or leave empty
+					publisher := ""
+					if cCtx.Args().Get(5) != "" {
+						publisher = cCtx.Args().Get(5)
+					}
+
+					// Parse publisherId from sixth cli argument if present or leave empty
+					publisherId := ""
+					if cCtx.Args().Get(6) != "" {
+						publisherId = cCtx.Args().Get(6)
+					}
+
+					// Create shared data used for all datasets
+					sharedData := reports.SharedData {
+						Platform: platform,
+						Publisher: publisher,
+						PublisherId: publisherId,
 					}
 
 					// Get configuration from environment variables.
@@ -88,7 +113,7 @@ func main() {
 					reportsService := reports.NewReportsService(statsService)
 
 					// Generate report
-					generateReport, err := reportsService.GenerateDatasetUsageReport(repoId, beginDate, endDate, addCompressedHeader)
+					generateReport, err := reportsService.GenerateDatasetUsageReport(repoId, beginDate, endDate, sharedData, addCompressedHeader)
 
 					if err != nil {
 						return err

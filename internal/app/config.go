@@ -24,6 +24,7 @@ type Config struct {
 
 	DataCite struct {
 		Url string
+		JWT string
 	}
 
 	ValidateDoi bool
@@ -42,6 +43,7 @@ func GetConfigFromEnv() *Config {
 	config.HTTP.Addr = getEnv("HTTP_ADDR", ":8081")
 	config.Plausible.Url = getEnv("PLAUSIBLE_URL", "https://analytics.stage.datacite.org")
 	config.DataCite.Url = getEnv("DATACITE_API_URL", "https://api.stage.datacite.org")
+	config.DataCite.JWT = getEnv("DATACITE_JWT", "")
 
 	// Database config
 	config.Database.Host = getEnv("DATABASE_HOST", "localhost")
