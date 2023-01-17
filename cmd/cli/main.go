@@ -126,7 +126,7 @@ func main() {
 						report, err := generateReport()
 
 						if err != nil {
-							break
+							return err
 						}
 						if report == nil {
 							break
