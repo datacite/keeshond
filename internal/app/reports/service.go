@@ -114,7 +114,7 @@ func generateReportHeader(beginDate time.Time, endDate time.Time, exceptions []E
 	reportHeader.Release = "rd1"
 	reportHeader.ReportId = "dsr"
 	reportHeader.Created = beginDate.Format(time.RFC3339)
-	reportHeader.CreatedBy = "DataCite"
+	reportHeader.CreatedBy = "datacite-analytics"
 	reportHeader.ReportingPeriod = ReportingPeriod{
 		BeginDate: beginDate,
 		EndDate: endDate,
