@@ -143,10 +143,6 @@ func (service *ReportsService) GenerateDatasetUsageReport(repoId string, startDa
 	return generateReportFunc, nil
 }
 
-func NewError(s string) {
-	panic("unimplemented")
-}
-
 // Generate report header
 func generateReportHeader(beginDate time.Time, endDate time.Time, exceptions []Exception) ReportHeader {
 	var reportHeader ReportHeader

@@ -103,8 +103,15 @@ func TestGenerateDatasetUsageReport(t *testing.T) {
 	beginDate := time.Date(2018, 1, 1, 0, 0, 0, 0, time.UTC)
 	endDate := time.Date(2018, 12, 31, 0, 0, 0, 0, time.UTC)
 
+	// Create fake shared data
+	sharedData := SharedData {
+		Platform: "datacite",
+		Publisher: "datacite",
+		PublisherId: "datacite.test",
+	}
+
 	// Generate the report, returns a function that can be called to get the report
-	generateReport, err := service.GenerateDatasetUsageReport("datacite", beginDate, endDate, false)
+	generateReport, err := service.GenerateDatasetUsageReport("datacite", beginDate, endDate, sharedData, false)
 
 	if err != nil {
 		t.Error(err)
@@ -156,11 +163,11 @@ func TestGenerateDatasetUsageReport(t *testing.T) {
 		t.Errorf("DatasetTitle is not correct got %s", first_dataset.DatasetTitle)
 	}
 
-	if first_dataset.Publisher != "" {
+	if first_dataset.Publisher != "datacite" {
 		t.Errorf("Publisher is not correct got %s", first_dataset.Publisher)
 	}
 
-	if first_dataset.PublisherId.Value != "" {
+	if first_dataset.PublisherId.Value != "datacite.test" {
 		t.Errorf("PublisherId is not correct got %s", first_dataset.PublisherId.Value)
 	}
 
