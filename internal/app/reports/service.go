@@ -2,7 +2,6 @@ package reports
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/datacite/keeshond/internal/app/stats"
@@ -34,9 +33,6 @@ func (service *ReportsService) GenerateDatasetUsageReport(repoId string, startDa
 		Start: startDate,
 		End:   endDate,
 	}
-
-	// print query
-	fmt.Println(query)
 
 	// Hardcoded for now, but possibly configurable in the future.
 	reportSize := 50000
