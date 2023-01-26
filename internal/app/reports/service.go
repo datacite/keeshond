@@ -184,43 +184,31 @@ func generateDatasetUsage(beginDate time.Time, endDate time.Time, result stats.B
 	datasetUsage.DataType = "dataset"
 	datasetUsage.Performance = []CounterDatasetPerformance{
 		{
-			Instance: CounterDatasetInstance{
-				MetricType: "total-dataset-requests",
-				Count:      int(result.TotalDownloads),
-			},
 			Period: ReportingPeriod{
 				BeginDate: beginDate,
 				EndDate:   endDate,
 			},
-		},
-		{
-			Instance: CounterDatasetInstance{
-				MetricType: "unique-dataset-requests",
-				Count:      int(result.UniqueDownloads),
-			},
-			Period: ReportingPeriod{
-				BeginDate: beginDate,
-				EndDate:   endDate,
-			},
-		},
-		{
-			Instance: CounterDatasetInstance{
-				MetricType: "total-dataset-invesigations",
-				Count:      int(result.TotalViews),
-			},
-			Period: ReportingPeriod{
-				BeginDate: beginDate,
-				EndDate:   endDate,
-			},
-		},
-		{
-			Instance: CounterDatasetInstance{
-				MetricType: "unique-dataset-investigations",
-				Count:      int(result.UniqueViews),
-			},
-			Period: ReportingPeriod{
-				BeginDate: beginDate,
-				EndDate:   endDate,
+			Instance: []CounterDatasetInstance{
+				{
+					MetricType: "total-dataset-requests",
+					Count:      int(result.TotalDownloads),
+					AccessMethod: "regular",
+				},
+				{
+					MetricType: "unique-dataset-requests",
+					Count:      int(result.UniqueDownloads),
+					AccessMethod: "regular",
+				},
+				{
+					MetricType: "total-dataset-invesigations",
+					Count:      int(result.TotalViews),
+					AccessMethod: "regular",
+				},
+				{
+					MetricType: "unique-dataset-investigations",
+					Count:      int(result.UniqueViews),
+					AccessMethod: "regular",
+				},
 			},
 		},
 	}

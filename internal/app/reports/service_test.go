@@ -172,20 +172,20 @@ func TestGenerateDatasetUsageReport(t *testing.T) {
 	}
 
 	// Check performance metrics
-	if first_dataset.Performance[0].Instance.Count != 50 {
-		t.Errorf("Total Dataset Requests is not correct got %d", first_dataset.Performance[0].Instance.Count)
+	if first_dataset.Performance[0].Instance[0].Count != 50 {
+		t.Errorf("Total Dataset Requests is not correct got %d", first_dataset.Performance[0].Instance[0].Count)
 	}
 
-	if first_dataset.Performance[1].Instance.Count != 25 {
-		t.Errorf("Unique Dataset Requests is not correct got %d", first_dataset.Performance[1].Instance.Count)
+	if first_dataset.Performance[0].Instance[1].Count != 25 {
+		t.Errorf("Unique Dataset Requests is not correct got %d", first_dataset.Performance[0].Instance[1].Count)
 	}
 
-	if first_dataset.Performance[2].Instance.Count != 100 {
-		t.Errorf("Total Dataset Investigations is not correct got %d", first_dataset.Performance[2].Instance.Count)
+	if first_dataset.Performance[0].Instance[2].Count != 100 {
+		t.Errorf("Total Dataset Investigations is not correct got %d", first_dataset.Performance[0].Instance[2].Count)
 	}
 
-	if first_dataset.Performance[3].Instance.Count != 50 {
-		t.Errorf("Total Dataset Investigations is not correct got %d", first_dataset.Performance[3].Instance.Count)
+	if first_dataset.Performance[0].Instance[3].Count != 50 {
+		t.Errorf("Total Dataset Investigations is not correct got %d", first_dataset.Performance[0].Instance[3].Count)
 	}
 
 }

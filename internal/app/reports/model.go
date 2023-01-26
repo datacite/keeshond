@@ -27,7 +27,7 @@ type CounterDatasetInstance struct {
 }
 
 type CounterDatasetPerformance struct {
-	Instance CounterDatasetInstance `json:"instance"`
+	Instance []CounterDatasetInstance `json:"instance"`
 	Period ReportingPeriod `json:"period"`
 }
 
