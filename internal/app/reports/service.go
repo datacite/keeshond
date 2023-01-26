@@ -113,15 +113,13 @@ func (service *ReportsService) GenerateDatasetUsageReport(repoId string, startDa
 
 		if addCompressedHeader {
 			// Add exception that this will be compressed report
-			exceptions = []Exception{
-				Exception{
+			exceptions = append(exceptions, Exception{
 					Code:     "69",
 					Message:  "Report is compressed using gzip",
 					Severity: "warning",
 					HelpUrl:  "https://github.com/datacite/sashimi",
 					Data:     "usage data needs to be uncompressed",
-				},
-			}
+			})
 		}
 
 		// Generate report header
