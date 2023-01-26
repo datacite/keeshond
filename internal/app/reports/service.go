@@ -150,6 +150,8 @@ func generateReportHeader(beginDate time.Time, endDate time.Time, exceptions []E
 		BeginDate: beginDate,
 		EndDate:   endDate,
 	}
+	reportHeader.ReportFilters = []string{}
+	reportHeader.ReportAttributes = []string{}
 
 	// Combine exceptions
 	reportHeader.Exceptions = exceptions

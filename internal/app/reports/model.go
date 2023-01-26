@@ -39,6 +39,8 @@ type ReportHeader struct {
 	Created   string `json:"created"`
 	CreatedBy string `json:"created-by"`
 	ReportingPeriod ReportingPeriod `json:"reporting-period"`
+	ReportFilters []string `json:"report-filters"`
+	ReportAttributes []string `json:"report-attributes"`
 	Exceptions []Exception `json:"exceptions"`
 }
 
