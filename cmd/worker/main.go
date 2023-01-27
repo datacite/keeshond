@@ -4,9 +4,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"encoding/json"
-	"errors"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
@@ -18,7 +16,7 @@ import (
 )
 
 func report_job(repoId string, beginDate time.Time, endDate time.Time, platform string, publisher string, publisherId string) error {
-	addCompressedHeader := true
+	addCompressedHeader := false
 
 	// Get keeshond configuration from environment variables.
 	var config = app.GetConfigFromEnv()
@@ -68,59 +66,25 @@ func report_job(repoId string, beginDate time.Time, endDate time.Time, platform 
 			return err
 		}
 
+		// Write report to file
+		filename := "report_" + repoId + "_" + beginDate.Format("2006-01-02") + "_" + endDate.Format("2006-01-02") + "_" + platform + "_" + publisher + "_" + publisherId + "_" + string(index) + ".json"
+		file, err := os.Create(filename)
+		if err != nil {
+			return err
+		}
+		defer file.Close()
+
+		file.Write(reportJson)
+
 		// Gzip json
-		compressedJson, _ := gzipData(reportJson)
+		//compressedJson, _ := gzipData(reportJson)
 
 		// Send to Reports API
-		err = sendReportToAPI(reportsAPIURL, compressedJson, config.DataCite.JWT)
+		err = reportsService.SendReportToAPI(reportsAPIURL, reportJson, config.DataCite.JWT)
 
 		if err != nil {
 			return err
 		}
-	}
-
-	return nil
-}
-
-func sendReportToAPI(reportsAPIURL string, compressedJson []byte, jwt string) error {
-	// Make a POST request to Reports API
-
-	bodyReader := bytes.NewReader(compressedJson)
-	req, err := http.NewRequest(http.MethodPost, reportsAPIURL, bodyReader)
-	if err != nil {
-		return err
-	}
-	// Set various headers as required by Reports API
-	req.Header.Set("Content-Type", "application/gzip")
-	req.Header.Set("Content-Encoding", "gzip")
-	req.Header.Set("Accept", "gzip")
-
-	// Add JWT token to request
-	req.Header.Set("Authorization", "Bearer " + jwt)
-
-	client := http.Client{
-		Timeout: 100 * time.Second,
-	}
-
-	res, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-
-	// Check response code
-	switch res.StatusCode {
-	case http.StatusCreated:
-		log.Default().Println("Report sent to Reports API")
-	case http.StatusUnauthorized:
-		return errors.New("unauthorized, JWT token is missing or invalid")
-	case http.StatusForbidden:
-		return errors.New("forbidden, JWT is expired or invalid")
-	case http.StatusUnsupportedMediaType:
-		return errors.New("did not include correct Content-Type header")
-	case http.StatusUnprocessableEntity:
-		return errors.New("invalid report provided")
-	default:
-		return errors.New("Error sending report to Reports API: " + res.Status)
 	}
 
 	return nil

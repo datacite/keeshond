@@ -1,7 +1,10 @@
 package reports
 
 import (
+	"bytes"
 	"errors"
+	"log"
+	"net/http"
 	"time"
 
 	"github.com/datacite/keeshond/internal/app/stats"
@@ -214,4 +217,59 @@ func generateDatasetUsage(beginDate time.Time, endDate time.Time, result stats.B
 	}
 
 	return datasetUsage
+}
+
+
+func (service *ReportsService) SendReportToAPI(reportsAPIURL string, compressedJson []byte, jwt string) error {
+	// Make a POST request to Reports API
+
+	bodyReader := bytes.NewReader(compressedJson)
+	req, err := http.NewRequest(http.MethodPost, reportsAPIURL, bodyReader)
+	if err != nil {
+		return err
+	}
+
+	// Set content type to be gzip as report will be compressed
+	//req.Header.Set("Content-Type", "application/gzip")
+	req.Header.Set("Content-Type", "application/json")
+
+	// Add JWT token to request
+	req.Header.Set("Authorization", "Bearer " + jwt)
+
+	client := http.Client{
+		Timeout: 100 * time.Second,
+		Transport: &http.Transport{
+			DisableCompression: true,
+		},
+	}
+
+	res, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+
+	// Print response body
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(res.Body)
+	newStr := buf.String()
+	log.Println(newStr)
+
+
+	// Check response code
+	switch res.StatusCode {
+		case http.StatusCreated:
+			log.Default().Println("Report sent to Reports API")
+		case http.StatusUnauthorized:
+			return errors.New("unauthorized, JWT token is missing or invalid")
+		case http.StatusForbidden:
+			return errors.New("forbidden, JWT is expired or invalid")
+		case http.StatusUnsupportedMediaType:
+			return errors.New("did not include correct Content-Type header")
+		case http.StatusUnprocessableEntity:
+			return errors.New("invalid report provided")
+		default:
+			return errors.New("Error sending report to Reports API: " + res.Status)
+	}
+
+	return nil
 }
