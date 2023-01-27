@@ -47,10 +47,10 @@ type ReportHeader struct {
 // COUNTER report dataset usage struct
 type CounterDatasetUsage struct {
 	DatasetTitle string `json:"dataset-title"`
-	DatasetId CounterIdentifier `json:"dataset-id"`
+	DatasetId []CounterIdentifier `json:"dataset-id"`
 	Platform string `json:"platform"`
 	Publisher string `json:"publisher"`
-	PublisherId CounterIdentifier `json:"publisher-id"`
+	PublisherId []CounterIdentifier `json:"publisher-id"`
 	DataType string `json:"data-type"`
 	Performance []CounterDatasetPerformance `json:"performance"`
 }

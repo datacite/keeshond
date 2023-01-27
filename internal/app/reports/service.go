@@ -164,21 +164,21 @@ func generateDatasetUsage(beginDate time.Time, endDate time.Time, result stats.B
 
 	datasetUsage.DatasetTitle = ""
 
-	datasetUsage.DatasetId = CounterIdentifier{
+	datasetUsage.DatasetId = []CounterIdentifier{{
 		Type:  "DOI",
 		Value: result.Pid,
-	}
+	}}
 
 	datasetUsage.Platform = sharedData.Platform
 	datasetUsage.Publisher = sharedData.Publisher
 
 	if sharedData.PublisherId != "" {
-		datasetUsage.PublisherId = CounterIdentifier{
+		datasetUsage.PublisherId = []CounterIdentifier{ {
 			Type:  "client-id",
 			Value: sharedData.PublisherId,
-		}
+		}}
 	} else {
-		datasetUsage.PublisherId = CounterIdentifier{}
+		datasetUsage.PublisherId = []CounterIdentifier{}
 	}
 
 	datasetUsage.DataType = "dataset"
@@ -200,7 +200,7 @@ func generateDatasetUsage(beginDate time.Time, endDate time.Time, result stats.B
 					AccessMethod: "regular",
 				},
 				{
-					MetricType: "total-dataset-invesigations",
+					MetricType: "total-dataset-investigations",
 					Count:      int(result.TotalViews),
 					AccessMethod: "regular",
 				},

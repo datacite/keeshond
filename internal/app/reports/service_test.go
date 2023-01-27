@@ -155,8 +155,8 @@ func TestGenerateDatasetUsageReport(t *testing.T) {
 	// check first dataset
 	first_dataset := datasets[0]
 
-	if first_dataset.DatasetId.Value != "10.1234/1" {
-		t.Errorf("DatasetId is not correct got %s", first_dataset.DatasetId.Value)
+	if first_dataset.DatasetId[0].Value != "10.1234/1" {
+		t.Errorf("DatasetId is not correct got %s", first_dataset.DatasetId[0].Value)
 	}
 
 	if first_dataset.DatasetTitle != "" {
@@ -167,8 +167,8 @@ func TestGenerateDatasetUsageReport(t *testing.T) {
 		t.Errorf("Publisher is not correct got %s", first_dataset.Publisher)
 	}
 
-	if first_dataset.PublisherId.Value != "datacite.test" {
-		t.Errorf("PublisherId is not correct got %s", first_dataset.PublisherId.Value)
+	if first_dataset.PublisherId[0].Value != "datacite.test" {
+		t.Errorf("PublisherId is not correct got %s", first_dataset.PublisherId[0].Value)
 	}
 
 	// Check performance metrics
