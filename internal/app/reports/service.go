@@ -219,12 +219,10 @@ func generateDatasetUsage(beginDate time.Time, endDate time.Time, result stats.B
 	return datasetUsage
 }
 
-
-func (service *ReportsService) SendReportToAPI(reportsAPIURL string, compressedJson []byte, jwt string) error {
+func SendReportToAPI(reportsAPIEndpoint string, compressedJson []byte, jwt string) error {
 	// Make a POST request to Reports API
-
 	bodyReader := bytes.NewReader(compressedJson)
-	req, err := http.NewRequest(http.MethodPost, reportsAPIURL, bodyReader)
+	req, err := http.NewRequest(http.MethodPost, reportsAPIEndpoint, bodyReader)
 	if err != nil {
 		return err
 	}
@@ -273,3 +271,4 @@ func (service *ReportsService) SendReportToAPI(reportsAPIURL string, compressedJ
 
 	return nil
 }
+

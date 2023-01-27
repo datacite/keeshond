@@ -22,7 +22,7 @@ func report_job(repoId string, beginDate time.Time, endDate time.Time, platform 
 	var config = app.GetConfigFromEnv()
 
 	// config contains the datacite URL, construct reports API URL
-	reportsAPIURL := config.DataCite.Url + "/reports"
+	reportsAPIEndpoint := config.DataCite.Url + "/reports"
 
 	// Setup database connection
 	conn := createDB(config)
@@ -80,7 +80,7 @@ func report_job(repoId string, beginDate time.Time, endDate time.Time, platform 
 		//compressedJson, _ := gzipData(reportJson)
 
 		// Send to Reports API
-		err = reportsService.SendReportToAPI(reportsAPIURL, reportJson, config.DataCite.JWT)
+		err = reports.SendReportToAPI(reportsAPIEndpoint, reportJson, config.DataCite.JWT)
 
 		if err != nil {
 			return err
