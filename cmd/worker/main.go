@@ -179,11 +179,11 @@ func createDB(config *app.Config) *gorm.DB {
 
 	// Create database connection.
 	dsn := db.CreateClickhouseDSN(
-		config.Database.Host,
-		config.Database.Port,
-		config.Database.User,
-		config.Database.Password,
-		config.Database.Dbname,
+		config.AnalyticsDatabase.Host,
+		config.AnalyticsDatabase.Port,
+		config.AnalyticsDatabase.User,
+		config.AnalyticsDatabase.Password,
+		config.AnalyticsDatabase.Dbname,
 	)
 	conn, err := db.NewGormClickhouseConnection(dsn)
 

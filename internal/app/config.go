@@ -9,7 +9,7 @@ type Config struct {
 		Addr string
 	}
 
-	Database struct {
+	AnalyticsDatabase struct {
 		Host string
 		Port string
 		User string
@@ -46,11 +46,11 @@ func GetConfigFromEnv() *Config {
 	config.DataCite.JWT = getEnv("DATACITE_JWT", "")
 
 	// Database config
-	config.Database.Host = getEnv("DATABASE_HOST", "localhost")
-	config.Database.Port = getEnv("DATABASE_PORT", "9000")
-	config.Database.User = getEnv("DATABASE_USER", "keeshond")
-	config.Database.Dbname = getEnv("DATABASE_DBNAME", "keeshond")
-	config.Database.Password = getEnv("DATABASE_PASSWORD", "keeshond")
+	config.AnalyticsDatabase.Host = getEnv("ANALYTICS_DATABASE_HOST", "localhost")
+	config.AnalyticsDatabase.Port = getEnv("ANALYTICS_DATABASE_PORT", "9000")
+	config.AnalyticsDatabase.User = getEnv("ANALYTICS_DATABASE_USER", "keeshond")
+	config.AnalyticsDatabase.Dbname = getEnv("ANALYTICS_DATABASE_DBNAME", "keeshond")
+	config.AnalyticsDatabase.Password = getEnv("ANALYTICS_DATABASE_PASSWORD", "keeshond")
 
 	// Validate DOI
 	config.ValidateDoi = getEnv("VALIDATE_DOI", "true") == "true"

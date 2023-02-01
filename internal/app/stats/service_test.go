@@ -50,11 +50,11 @@ func createMockEvents() []event.Event {
 func setupTestDB(config *app.Config) (*gorm.DB, error) {
 	// Get clickhouse dsn
 	dsn := db.CreateClickhouseDSN(
-		config.Database.Host,
-		config.Database.Port,
-		config.Database.User,
-		config.Database.Password,
-		config.Database.Dbname,
+		config.AnalyticsDatabase.Host,
+		config.AnalyticsDatabase.Port,
+		config.AnalyticsDatabase.User,
+		config.AnalyticsDatabase.Password,
+		config.AnalyticsDatabase.Dbname,
 	)
 
 	// Setup db connection
@@ -76,7 +76,7 @@ func setup() TestState {
 	// Test config
 	config := app.GetConfigFromEnv()
 	config.ValidateDoi = false
-	config.Database.Dbname = "keeshond_test"
+	config.AnalyticsDatabase.Dbname = "keeshond_test"
 
 	conn, err := setupTestDB(config)
 	if err != nil {
@@ -128,7 +128,7 @@ func TestStatsService_Aggregate(t *testing.T) {
 	// Test config
 	config := app.GetConfigFromEnv()
 	config.ValidateDoi = false
-	config.Database.Dbname = "keeshond_test"
+	config.AnalyticsDatabase.Dbname = "keeshond_test"
 
 	conn, err := setupTestDB(config)
 	if err != nil {
@@ -175,7 +175,7 @@ func TestStatsService_Timeseries(t *testing.T) {
 	// Test config
 	config := app.GetConfigFromEnv()
 	config.ValidateDoi = false
-	config.Database.Dbname = "keeshond_test"
+	config.AnalyticsDatabase.Dbname = "keeshond_test"
 
 	conn, err := setupTestDB(config)
 	if err != nil {
@@ -231,7 +231,7 @@ func TestStatsService_BreakdownByPID(t *testing.T) {
 	// Test config
 	config := app.GetConfigFromEnv()
 	config.ValidateDoi = false
-	config.Database.Dbname = "keeshond_test"
+	config.AnalyticsDatabase.Dbname = "keeshond_test"
 
 	conn, err := setupTestDB(config)
 	if err != nil {
@@ -266,7 +266,7 @@ func TestStatsService_CountUniquePID(t *testing.T) {
 	// Test config
 	config := app.GetConfigFromEnv()
 	config.ValidateDoi = false
-	config.Database.Dbname = "keeshond_test"
+	config.AnalyticsDatabase.Dbname = "keeshond_test"
 
 	conn, err := setupTestDB(config)
 	if err != nil {
