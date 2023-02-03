@@ -25,7 +25,6 @@ type Http struct {
 	db     *gorm.DB
 
 	eventServiceDB        *event.EventService
-	eventServicePlausible *event.EventService
 
 	statsService *stats.StatsService
 }
@@ -58,20 +57,17 @@ func NewHttpServer(config *app.Config, db *gorm.DB) *Http {
 	}))
 
 	// Register repositories and services
-	eventRepositoryPlausible := event.NewRepositoryPlausible(config)
 	eventRepositoryDB := event.NewEventRepository(s.db, config)
 
 	sessionRepository := session.NewSessionRepository(s.db, config)
 	sessionService := session.NewSessionService(sessionRepository, config)
 
-	eventServicePlausible := event.NewEventService(eventRepositoryPlausible, sessionService, config)
 	eventServiceDB := event.NewEventService(eventRepositoryDB, sessionService, config)
 
 	statsRepository := stats.NewStatsRepository(s.db)
 	statsService := stats.NewStatsService(statsRepository)
 	s.statsService = statsService
 
-	s.eventServicePlausible = eventServicePlausible
 	s.eventServiceDB = eventServiceDB
 
 	// Register routes.
@@ -150,11 +146,6 @@ func (s *Http) createMetric(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, errorMessage, http.StatusBadRequest)
 
 		return
-	}
-
-	// Create event plausible
-	if _, err := s.eventServicePlausible.CreateEvent(&eventRequest); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
 	// Create event db
