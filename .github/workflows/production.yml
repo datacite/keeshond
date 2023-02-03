@@ -1,8 +1,7 @@
 name: Deploy to production
 on:
-  push:
-    branches:
-      - "main"
+  release:
+    types: [published]
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -24,13 +23,17 @@ jobs:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Get git tag
+        run: |
+          echo "GIT_TAG=$(git tag --points-at HEAD)" >> $GITHUB_OUTPUT
+        id: set_git_vars
       - name: Push to GitHub Packages
         uses: docker/build-push-action@v2
         with:
           context: .
           file: ./docker/web/Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository }}:latest
+          tags: ghcr.io/${{ github.repository }}:${{ steps.set_git_vars.outputs.GIT_TAG }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
 
@@ -45,11 +48,11 @@ jobs:
       - name: Extract variables
         shell: bash
         run: |
-          echo "::set-output name=BRANCH::$(echo ${GITHUB_REF#refs/heads/} | sed 's/\//_/g')"
-          echo "::set-output name=TAG::$(git tag --points-at HEAD)"
-          echo "::set-output name=GIT_SHA::$(git rev-parse HEAD)"
-          echo "::set-output name=GIT_SHA_SHORT::$(git rev-parse --short HEAD)"
-          echo "::set-output name=MESSAGE::$(git log --format=%B -n 1 ${{ github.event.after }})"
+          echo "BRANCH=$(echo ${GITHUB_REF#refs/heads/} | sed 's/\//_/g')" >> $GITHUB_OUTPUT
+          echo "TAG=$(git tag --points-at HEAD)" >> $GITHUB_OUTPUT
+          echo "GIT_SHA=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+          echo "GIT_SHA_SHORT=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
         id: extract_variables
 
       - name: Checkout terraform config repo
@@ -69,7 +72,7 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add prod-eu-west/services/analytics-api/keeshond.auto.tfvars
-          git commit -m "Adding keeshond git variables for commit ${{ steps.extract_variables.outputs.GIT_SHA }}"
+          git commit -m "Adding keeshond git variables for commit ${{ steps.extract_variables.outputs.GIT_TAG }}"
       - name: Push changes
         uses: ad-m/github-push-action@v0.6.0
         with:
