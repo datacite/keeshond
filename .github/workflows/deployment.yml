@@ -43,11 +43,13 @@ jobs:
           export GIT_SHA=${{ steps.extract_variables.outputs.GIT_SHA_SHORT }}
           export GIT_TAG=${{ steps.extract_variables.outputs.GIT_TAG }}
 
-          sed -e "s/{{ .Env.GIT_SHA }}/$GIT_SHA/g" -e "s/{{ .Env.GIT_TAG }}/$GIT_TAG/g" ${{ inputs.versionvar_filename }}.auto.tfvars.tmpl > ${{ inputs.versionvar_filename }}.auto.tfvars
+          export VERSION_FILENAME=${{ inputs.env_name }}/services/${{ inputs.service_name }}/${{ inputs.versionvar_filename }}.auto.tfvars
+
+          sed -e "s/{{ .Env.GIT_SHA }}/$GIT_SHA/g" -e "s/{{ .Env.GIT_TAG }}/$GIT_TAG/g" $VERSION_FILENAME.tmpl > $VERSION_FILENAME
 
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add ${{ inputs.env_name }}/services/${{ inputs.service_name }}/${{ inputs.versionvar_filename }}.auto.tfvars
+          git add $VERSION_FILENAME
           git commit -m "Adding ${{ inputs.versionvar_filename }} git variables for commit ${{ steps.extract_variables.outputs.GIT_TAG }}"
 
       - name: Push changes
