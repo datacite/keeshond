@@ -6,10 +6,10 @@ on:
       versionvar_filename:
         required: true
         type: string
-      service_name
+      service_name:
         required: true
         type: string
-      env_name
+      env_name:
         required: true
         type: string
 
