@@ -44,7 +44,7 @@ jobs:
       - name: Commit changes to terraform config repository
         run: |
           export GIT_SHA=${{ steps.extract_variables.outputs.GIT_SHA_SHORT }}
-          export GIT_TAG=${{ steps.extract_variables.outputs.GIT_TAG }}
+          export GIT_TAG=${{ steps.extract_variables.outputs.TAG }}
 
           export VERSION_FILENAME=${{ inputs.env_name }}/services/${{ inputs.service_name }}/${{ inputs.versionvar_filename }}.auto.tfvars
 
