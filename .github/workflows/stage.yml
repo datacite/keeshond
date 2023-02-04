@@ -14,14 +14,14 @@ jobs:
             image: ghcr.io/${{ github.repository }}web
           - dockerfile: ./docker/worker/Dockerfile
             image: ghcr.io/${{ github.repository }}worker
-    uses: ./github/workflows/build_docker.yml
+    uses: ./.github/workflows/build_docker.yml
     with:
       image: ${{ matrix.image }}
       dockerfile: ${{ matrix.dockerfile }}
 
   deploy:
     needs: [build]
-    uses: ./github/workflows/deployment.yml
+    uses: ./.github/workflows/deployment.yml
     with:
       versionvar_filename: keeshond
       service_name: analytics-api
