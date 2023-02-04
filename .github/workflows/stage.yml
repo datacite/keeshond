@@ -26,3 +26,5 @@ jobs:
       versionvar_filename: keeshond
       service_name: analytics-api
       env_name: stage
+    secrets:
+      PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
