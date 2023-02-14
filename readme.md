@@ -7,6 +7,13 @@ This is part of the DataCite Usage Analytics service.
 This has a public API that is the main endpoint for the [DataCite Tracker](https://github.com/datacite/datacite-tracker)
 Events are stored within a Clickhouse database and then statistics according to COUNTER can be calculated.
 
+### Setup
+
+1. Install the tracking script [DataCite Tracker](https://github.com/datacite/datacite-tracker)
+2. Configure using appropriate details
+3. Results should be sent to the /api/metric end point
+4. You can use the check api endpoint /api/check/{repo_id} to see if results are being recorded, it returns 200 and the timestamp of the last event if successful.
+
 ## COUNTER Usage Report Generation
 
 Based on the data stored in Clickhouse and statistics that can be generated, usage reports in the format of SUSHI Json can be generated.
