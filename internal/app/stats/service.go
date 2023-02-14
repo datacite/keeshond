@@ -4,6 +4,8 @@ import (
 	"errors"
 	"strings"
 	"time"
+
+	"github.com/datacite/keeshond/internal/app/event"
 )
 
 type StatsServiceInterface interface {
@@ -11,6 +13,7 @@ type StatsServiceInterface interface {
 	Timeseries(repoId string, query Query) []TimeseriesResult
 	BreakdownByPID(repoId string, query Query, page int, pageSize int) []BreakdownResult
 	CountUniquePID(repoId string, query Query) int64
+	LastEvent(repoId string) event.Event
 }
 
 type StatsService struct {
@@ -38,6 +41,10 @@ func (service *StatsService) BreakdownByPID(repoId string, query Query, page int
 
 func (service *StatsService) CountUniquePID(repoId string, query Query) int64 {
 	return service.repository.CountUniquePID(repoId, query)
+}
+
+func (service *StatsService) LastEvent(repoId string) event.Event {
+	return service.repository.LastEvent(repoId)
 }
 
 

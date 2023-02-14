@@ -296,3 +296,26 @@ func TestStatsService_CountUniquePID(t *testing.T) {
 		t.Errorf("CountUniquePID should have returned 2 but got %d", result)
 	}
 }
+
+func TestStatsService_LastEvent(t *testing.T) {
+	// Test config
+	config := app.GetConfigFromEnv()
+	config.ValidateDoi = false
+	config.AnalyticsDatabase.Dbname = "keeshond_test"
+
+	conn, err := setupTestDB(config)
+	if err != nil {
+		// Fail
+		t.Errorf("Error connecting to test database: %s", err)
+	}
+
+	statsRepository := NewStatsRepository(conn)
+	statsService := NewStatsService(statsRepository)
+
+	// Get stats
+	result := statsService.LastEvent("example.com")
+
+	if result.Timestamp != time.Date(2022, 01, 01, 02, 00, 30, 000, time.Local) {
+		t.Errorf("LastEvent should have returned 2022-01-01 02:00:30 but got %s", result.Timestamp)
+	}
+}
