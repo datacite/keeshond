@@ -82,6 +82,8 @@ func NewHttpServer(config *app.Config, db *gorm.DB) *Http {
 		w.Write([]byte("ok"))
 	})
 
+	s.router.Get("/api/check/{repoId}", s.check)
+
 	s.router.Post("/api/metric", s.createMetric)
 
 	// Protected routes
@@ -124,6 +126,21 @@ type MetricRequest struct {
 	RepoId string `json:"i"`
 	Url    string `json:"u"`
 	Pid    string `json:"p"`
+}
+
+func (s *Http) check(w http.ResponseWriter, r *http.Request) {
+	repoId := chi.URLParam(r, "repoId")
+
+	// Get last event for repoId
+	result, hasResult := s.statsService.LastEvent(repoId)
+
+	if !hasResult {
+		http.Error(w, "No events found", http.StatusNotFound)
+		return
+	}
+
+	// Return timestamp from last event in iso8601 format
+	w.Write([]byte(result.Timestamp.Format("2006-01-02T15:04:05Z")))
 }
 
 func (s *Http) createMetric(w http.ResponseWriter, r *http.Request) {
