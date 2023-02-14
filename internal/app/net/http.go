@@ -9,12 +9,14 @@ import (
 	"strings"
 
 	"github.com/datacite/keeshond/internal/app"
+	"github.com/datacite/keeshond/internal/app/auth"
 	"github.com/datacite/keeshond/internal/app/event"
 	"github.com/datacite/keeshond/internal/app/session"
 	"github.com/datacite/keeshond/internal/app/stats"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	"github.com/go-chi/jwtauth/v5"
 	"gorm.io/gorm"
 )
 
@@ -23,6 +25,7 @@ type Http struct {
 	router *chi.Mux
 	config *app.Config
 	db     *gorm.DB
+	tokenAuth *jwtauth.JWTAuth
 
 	eventServiceDB        *event.EventService
 
@@ -34,12 +37,16 @@ type ErrorResponse struct {
 }
 
 func NewHttpServer(config *app.Config, db *gorm.DB) *Http {
+
+	tokenAuth := auth.GetAuthToken(config)
+
 	// Create a new server that wraps the net/http server & add a router.
 	s := &Http{
 		server: &http.Server{},
 		router: chi.NewRouter(),
 		config: config,
 		db:     db,
+		tokenAuth: tokenAuth,
 	}
 
 	s.router.Use(middleware.RequestID)
@@ -77,10 +84,15 @@ func NewHttpServer(config *app.Config, db *gorm.DB) *Http {
 
 	s.router.Post("/api/metric", s.createMetric)
 
-	// Create API routes for getting metric statistics
-	s.router.Get("/api/stats/aggregate/{repoId}", s.getAggregate)
-	s.router.Get("/api/stats/timeseries/{repoId}", s.getTimeseries)
-	s.router.Get("/api/stats/breakdown/{repoId}", s.getBreakdown)
+	// Protected routes
+	s.router.Group(func(r chi.Router) {
+		r.Use(jwtauth.Verifier(s.tokenAuth))
+		r.Use(jwtauth.Authenticator)
+
+		r.Get("/api/stats/aggregate/{repoId}", s.getAggregate)
+		r.Get("/api/stats/timeseries/{repoId}", s.getTimeseries)
+		r.Get("/api/stats/breakdown/{repoId}", s.getBreakdown)
+	})
 
 	s.server.Handler = s.router
 

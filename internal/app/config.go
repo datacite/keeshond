@@ -2,6 +2,7 @@ package app
 
 import (
 	"os"
+	"strings"
 )
 
 type Config struct {
@@ -25,6 +26,7 @@ type Config struct {
 	DataCite struct {
 		Url string
 		JWT string
+		JWTPublicKey string
 	}
 
 	ValidateDoi bool
@@ -44,6 +46,7 @@ func GetConfigFromEnv() *Config {
 	config.Plausible.Url = getEnv("PLAUSIBLE_URL", "https://analytics.stage.datacite.org")
 	config.DataCite.Url = getEnv("DATACITE_API_URL", "https://api.stage.datacite.org")
 	config.DataCite.JWT = getEnv("DATACITE_JWT", "")
+	config.DataCite.JWTPublicKey = strings.Replace(getEnv("JWT_PUBLIC_KEY", ""), `\n`, "\n", -1)
 
 	// Database config
 	config.AnalyticsDatabase.Host = getEnv("ANALYTICS_DATABASE_HOST", "localhost")
