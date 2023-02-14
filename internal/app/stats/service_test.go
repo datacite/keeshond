@@ -313,7 +313,7 @@ func TestStatsService_LastEvent(t *testing.T) {
 	statsService := NewStatsService(statsRepository)
 
 	// Get stats
-	result := statsService.LastEvent("example.com")
+	result, _ := statsService.LastEvent("example.com")
 
 	if result.Timestamp != time.Date(2022, 01, 01, 02, 00, 30, 000, time.Local) {
 		t.Errorf("LastEvent should have returned 2022-01-01 02:00:30 but got %s", result.Timestamp)

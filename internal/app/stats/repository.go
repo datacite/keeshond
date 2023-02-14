@@ -19,7 +19,7 @@ type StatsRepositoryReader interface {
 	// Return count of unique PIDs for repository over time period.
 	CountUniquePID(repoId string, query Query) int64
 	// Get last recorded event for a repository
-	LastEvent(repoId string) event.Event
+	LastEvent(repoId string) (event.Event, bool)
 }
 
 type StatsRepository struct {
@@ -32,15 +32,19 @@ func NewStatsRepository(db *gorm.DB) *StatsRepository {
 	}
 }
 
-func (repository *StatsRepository) LastEvent(repoId string) event.Event {
-	var result event.Event
+func (repository *StatsRepository) LastEvent(repoId string) (event.Event, bool) {
+	var e event.Event
 
-	repository.db.
+	result := repository.db.
 		Scopes(RepoId(repoId)).
 		Order("timestamp desc").
-		First(&result)
+		First(&e)
 
-	return result
+	if result.Error != nil {
+		return e, false
+	}
+
+	return e, true
 }
 
 func (repository *StatsRepository) Aggregate(repoId string, query Query) AggregateResult {

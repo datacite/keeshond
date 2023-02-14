@@ -13,7 +13,7 @@ type StatsServiceInterface interface {
 	Timeseries(repoId string, query Query) []TimeseriesResult
 	BreakdownByPID(repoId string, query Query, page int, pageSize int) []BreakdownResult
 	CountUniquePID(repoId string, query Query) int64
-	LastEvent(repoId string) event.Event
+	LastEvent(repoId string) (event.Event, bool)
 }
 
 type StatsService struct {
@@ -43,7 +43,7 @@ func (service *StatsService) CountUniquePID(repoId string, query Query) int64 {
 	return service.repository.CountUniquePID(repoId, query)
 }
 
-func (service *StatsService) LastEvent(repoId string) event.Event {
+func (service *StatsService) LastEvent(repoId string) (event.Event, bool) {
 	return service.repository.LastEvent(repoId)
 }
 
