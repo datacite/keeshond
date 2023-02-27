@@ -27,3 +27,13 @@ jobs:
       env_name: prod-eu-west
     secrets:
       PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+  deploy-test:
+    needs: [build]
+    uses: ./.github/workflows/deployment.yml
+    with:
+      versionvar_filename: keeshond
+      service_name: analytics-api
+      env_name: test
+    secrets:
+      PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
