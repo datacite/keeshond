@@ -26,7 +26,22 @@ Requirements:
 
 * Go 1.19
 
+## General config
+
+Configuration is taken from the environment
+
+- ANALYTICS_DATABASE_HOST - Clickhouse database URL
+- ANALYTICS_DATABASE_USER - Clickhouse user
+- ANALYTICS_DATABASE_PASSWORD - Clickhouse password
+- ANALYTICS_DATABASE_DBNAME - Clickhouse database name
+
 ### Event Tracking Web Server
+
+### Web tracking Config
+
+- VALIDATE_DOI - Can enable/disable DOI validation for event tracking - default to true.
+- DATACITE_API_URL - This is used only when storing events as part of DOI validation
+- JWT_PUBLIC_KEY - This is used on authenticated endpoints to validate valid DataCite JWTs
 
 #### Running locally
 
@@ -48,32 +63,34 @@ $ docker run -p 8081:8081 --rm -ti keeshondweb
 
 This is triggered via a worker script, note that this will automatically submit the usage report to the Usage Reports API.
 
-#### Config
+#### Report specific config
 
 The variables needed for the report generation are taken from Environment variables
 
-REPO_ID - The unique tracking id for a repository, this is used for which stats to collect. This is assigned by DataCite.
-BEGIN_DATE - The reporting period start date, typically this will be the start of a month.
-END_DATE - The reporting perioid end date, typically this will be the end of a month.
-PLATFORM - The name or identifier of the platform that the usage is from.
-PUBLISHER - The name of publisher of the dataset
-PUBLISHER_ID - The identifier of publisher of the dataset
+- REPO_ID - The unique tracking id for a repository, this is used for which stats to collect. This is assigned by DataCite.
+- BEGIN_DATE - The reporting period start date, typically this will be the start of a month.
+- END_DATE - The reporting perioid end date, typically this will be the end of a month.
+- PLATFORM - The name or identifier of the platform that the usage is from.
+- PUBLISHER - The name of publisher of the dataset
+- PUBLISHER_ID - The identifier of publisher of the dataset
 
 In addition a valid DataCite JWT will need to be supplied for authentication and submission to the Usage Reports API.
 
-DATACITE_JWT - Valid JWT with correct permissions. This is assigned by DataCite.
+- DATACITE_JWT - Valid JWT with correct permissions. This is assigned by DataCite.
 
 #### Running Locally
 
 A report can be triggered using the worker version of the application.
 
 e.g.
+    Note: Assumes general config has been setup i.e. clickhouse database connection
 
 ```bash
 REPO_ID=datacite.demo BEGIN_DATE=2022-01-01 END_DATE=2022-12-31 PLATFORM=datacite PUBLISHER="datacite demo" PUBLISHER_ID=datacite.demo go run cmd/worker/main.go
 ```
 
 #### Running via docker container
+    Note: Assumes general config has been setup i.e. clickhouse database connection
 
 ```bash
 # Build worker image
