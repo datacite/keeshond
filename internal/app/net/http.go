@@ -3,8 +3,10 @@ package net
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -143,6 +145,33 @@ func (s *Http) check(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(result.Timestamp.Format("2006-01-02T15:04:05Z")))
 }
 
+
+// Function to check if useragent is a bot
+func isBot(userAgent string) bool {
+	// Read file with known bots
+	bots, err := ioutil.ReadFile("data/COUNTER_Robots_list.json")
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Read json file which is a list of objects containing pattern and last changed date
+	var botsList []map[string]interface{}
+	json.Unmarshal(bots, &botsList)
+
+	// Loop through list of bots and check if useragent matches pattern
+	for _, bot := range botsList {
+		pattern := bot["pattern"].(string)
+		regex := regexp.MustCompile("(?i)"+pattern)
+
+		if regex.MatchString(userAgent) {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (s *Http) createMetric(w http.ResponseWriter, r *http.Request) {
 	// Metric request is different to a eventRequest as only some data comes
 	// from the json body
@@ -151,6 +180,15 @@ func (s *Http) createMetric(w http.ResponseWriter, r *http.Request) {
 	// Marshal json to metric
 	if err := json.NewDecoder(r.Body).Decode(&metricRequest); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Print useragent
+	log.Println(r.UserAgent())
+
+	// Return a bad request if useragent is a bot
+	if isBot(r.UserAgent()) {
+		http.Error(w, "Event request denied due to known bot", http.StatusBadRequest)
 		return
 	}
 

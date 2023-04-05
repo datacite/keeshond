@@ -10,6 +10,10 @@ import (
 )
 
 func GetAuthToken(config *app.Config) *jwtauth.JWTAuth {
+	// If no JWTPublic key return
+	if config.DataCite.JWTPublicKey == "" {
+		return nil
+	}
 	publicKeyBlock, _ := pem.Decode([]byte(config.DataCite.JWTPublicKey))
 
 	publicKey, err := x509.ParsePKIXPublicKey(publicKeyBlock.Bytes)

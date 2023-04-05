@@ -20,6 +20,9 @@ USER app
 # Copy the go binary from the builder to the container
 COPY --chown=app:app --from=builder /app/webbin /home/app/webbin
 
+# Copy COUNTER robots file to the container
+COPY --chown=app:app --from=builder /app/data/COUNTER_Robots_list.json /home/app/data/COUNTER_Robots_list.json
+
 # Set the workdir to app dir
 WORKDIR /home/app/
 
