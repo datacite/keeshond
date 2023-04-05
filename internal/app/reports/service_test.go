@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/datacite/keeshond/internal/app/event"
 	"github.com/datacite/keeshond/internal/app/stats"
 )
 
@@ -90,6 +91,13 @@ func (m *MockStatsService) Aggregate(repoId string, query stats.Query) stats.Agg
 		TotalDownloads: 50,
 		UniqueDownloads: 25,
 	}
+}
+
+// Mock LastEvent
+func (m *MockStatsService) LastEvent(repoId string) (event.Event, bool) {
+	var e event.Event
+
+	return e, true
 }
 
 // Test that the service can generate a dataset usage report
