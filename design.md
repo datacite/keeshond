@@ -31,6 +31,8 @@ Session ID's are created according to COUNTER requirements but they consist of a
 
 User ID's are generated based on a unique salted hash, the data comes from the original client ip, the useragent used, a unique identifier (repo id) and the original host domain of the site recording the event.
 
+**The original client IP and useragent are not stored after generation**
+
 # Statistics API
 
 Statistics API builds queries over the metric events stored in clickhouse.
