@@ -11,10 +11,29 @@ Functionality be packaged by what you're dealing with, so we avoid top level mod
 ## Folder Structure
 - internal - Reserved by golang, but is where everything specific to app lives, i.e. nothing third parties could import
 - app - Main package for all application code
-- cmd - The main access to the functioanlity, different applications can be built depending on usecases using the internal code.
+- cmd - The main access to the functionality, different applications can be built depending on usecases using the internal code.
+- docker - Docker related build files
+- data - Additional data that is required by applications e.g. COUNTER Robots list
 
+# Metric Event API
+
+Recording of Metric events, these are submitted and stored into a Clickhouse database
+
+### Events
+
+An event is made up of the metric name, the identifier for repository we're tracking, user id, session ids, the url of the request and the unique identifier for resource i.e. a PID (DOI).
+
+### Session IDs
+
+Session ID's are created according to COUNTER requirements but they consist of a "timestamp date + hour time slice + user id"
+
+### User IDs
+
+User ID's are generated based on a unique salted hash, the data comes from the original client ip, the useragent used, a unique identifier (repo id) and the original host domain of the site recording the event.
 
 # Statistics API
+
+Statistics API builds queries over the metric events stored in clickhouse.
 
 ### Metrics
 
@@ -153,3 +172,14 @@ Breakdown of metrics by PID
   ]
 }
 
+# Reports API
+
+### COUNTER Usage Report
+
+The main aim of the reports API is to generate a valid COUNTER Usage report to track
+investigations (views) and requests (downloads).
+
+All the data comes from the stats API using the breakdown by a PID functionality.
+
+#### SUSHI Report
+A valid SUSHI report can be generated that contains all the statistics data, note should admit warnings for missing data.
