@@ -133,12 +133,27 @@ func checkDoiExistsInDataCite(doi string, url string, dataciteApiUrl string, cli
 		return errors.New("Can not unmarshal JSON")
 	}
 
-	// Compare the result with the url
-	if result.Url != url {
+	// Compare the result with the url but ignore the protocol
+	if validateDoiUrl(result.Url, url) {
 		return errors.New("This DOI doesn't match this URL")
 	}
 
 	return nil
+}
+
+func validateDoiUrl(doiUrl string, urlCompare string) bool {
+	// Compare the result with the url but ignore the protocol
+	if stripScheme(doiUrl) != stripScheme(urlCompare) {
+		return false
+	}
+
+	return true
+}
+
+// Function to strip the scheme from a URL
+func stripScheme(urlToStrip string) string {
+	parsedUrl, _ := url.Parse(urlToStrip)
+	return parsedUrl.Host + parsedUrl.Path + "?" + parsedUrl.RawQuery + parsedUrl.Fragment
 }
 
 func CreateMockEvent(metricName string, repoId string, doi string, userId uint64, timestamp time.Time) Event {
