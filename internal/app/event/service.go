@@ -134,7 +134,7 @@ func checkDoiExistsInDataCite(doi string, url string, dataciteApiUrl string, cli
 	}
 
 	// Compare the result with the url but ignore the protocol
-	if validateDoiUrl(result.Url, url) {
+	if !validateDoiUrl(result.Url, url) {
 		return errors.New("This DOI doesn't match this URL")
 	}
 
@@ -142,6 +142,11 @@ func checkDoiExistsInDataCite(doi string, url string, dataciteApiUrl string, cli
 }
 
 func validateDoiUrl(doiUrl string, urlCompare string) bool {
+	// Print stripScheme(doiUrl)
+	fmt.Println(stripScheme(doiUrl))
+	// Print stripScheme(urlCompare)
+	fmt.Println(stripScheme(urlCompare))
+
 	// Compare the result with the url but ignore the protocol
 	if stripScheme(doiUrl) != stripScheme(urlCompare) {
 		return false
@@ -152,8 +157,12 @@ func validateDoiUrl(doiUrl string, urlCompare string) bool {
 
 // Function to strip the scheme from a URL
 func stripScheme(urlToStrip string) string {
-	parsedUrl, _ := url.Parse(urlToStrip)
-	return parsedUrl.Host + parsedUrl.Path + "?" + parsedUrl.RawQuery + parsedUrl.Fragment
+	parsedUrl, _ := url.ParseRequestURI(urlToStrip)
+	parsedUrl.Scheme = ""
+	// Strip trailing slash from path
+	parsedUrl.Path = strings.TrimSuffix(parsedUrl.Path, "/")
+
+	return parsedUrl.String()
 }
 
 func CreateMockEvent(metricName string, repoId string, doi string, userId uint64, timestamp time.Time) Event {
