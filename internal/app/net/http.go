@@ -183,9 +183,6 @@ func (s *Http) createMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Print useragent
-	log.Println(r.UserAgent())
-
 	// Return a bad request if useragent is a bot
 	if isBot(r.UserAgent()) {
 		http.Error(w, "Event request denied due to known bot", http.StatusBadRequest)
