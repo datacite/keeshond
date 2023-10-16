@@ -185,7 +185,7 @@ func (s *Http) createMetric(w http.ResponseWriter, r *http.Request) {
 
 	// Return a bad request if useragent is a bot
 	if isBot(r.UserAgent()) {
-		http.Error(w, "Event request denied due to known bot", http.StatusBadRequest)
+		http.Error(w, "Event request denied due to known bot", http.StatusForbidden)
 		return
 	}
 
@@ -207,7 +207,7 @@ func (s *Http) createMetric(w http.ResponseWriter, r *http.Request) {
 		// Format error message
 		errorMessage := fmt.Sprintf("%s - %s, Usage stats cannot be processed", eventRequest.Pid, err.Error())
 
-		http.Error(w, errorMessage, http.StatusBadRequest)
+		http.Error(w, errorMessage, http.StatusUnprocessableEntity)
 
 		return
 	}
