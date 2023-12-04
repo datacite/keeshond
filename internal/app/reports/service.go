@@ -126,7 +126,7 @@ func (service *ReportsService) GenerateDatasetUsageReport(repoId string, startDa
 		}
 
 		// Generate report header
-		reportHeader := generateReportHeader(startDate, endDate, exceptions)
+		reportHeader := generateReportHeader(startDate, endDate, sharedData, exceptions)
 
 		// Generate report
 		report := CounterDatasetReport{
@@ -141,14 +141,18 @@ func (service *ReportsService) GenerateDatasetUsageReport(repoId string, startDa
 }
 
 // Generate report header
-func generateReportHeader(beginDate time.Time, endDate time.Time, exceptions []Exception) ReportHeader {
+func generateReportHeader(beginDate time.Time, endDate time.Time, sharedData SharedData, exceptions []Exception) ReportHeader {
 	var reportHeader ReportHeader
 
 	reportHeader.ReportName = "Dataset Master Report"
 	reportHeader.Release = "rd1"
 	reportHeader.ReportId = "dsr"
 	reportHeader.Created = beginDate.Format(time.RFC3339)
-	reportHeader.CreatedBy = "datacite-analytics"
+	if sharedData.PublisherId != "" {
+		reportHeader.CreatedBy = "da_" + sharedData.PublisherId
+	} else {
+		reportHeader.CreatedBy = "datacite-analytics"
+	}
 	reportHeader.ReportingPeriod = ReportingPeriod{
 		BeginDate: beginDate,
 		EndDate:   endDate,
