@@ -29,8 +29,8 @@ jobs:
     secrets:
       PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
-  deploy:
-    needs: [build]
+  deploy-worker:
+    needs: [build, deploy-api]
     uses: ./.github/workflows/deployment.yml
     with:
       versionvar_filename: keeshond
