@@ -47,14 +47,3 @@ jobs:
       env_name: test
     secrets:
       PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-
-  deploy-worker-test:
-    needs: [build, deploy-api-test]
-    uses: ./.github/workflows/deployment.yml
-    with:
-      versionvar_filename: keeshond
-      service_name: analytics-worker
-      env_name: test
-    secrets:
-      PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-
