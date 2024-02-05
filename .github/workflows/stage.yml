@@ -19,12 +19,22 @@ jobs:
       image: ${{ matrix.image }}
       dockerfile: ${{ matrix.dockerfile }}
 
-  deploy:
+  deploy-api:
     needs: [build]
     uses: ./.github/workflows/deployment.yml
     with:
       versionvar_filename: keeshond
       service_name: analytics-api
+      env_name: stage
+    secrets:
+      PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+  deploy:
+    needs: [build]
+    uses: ./.github/workflows/deployment.yml
+    with:
+      versionvar_filename: keeshond
+      service_name: analytics-worker
       env_name: stage
     secrets:
       PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
