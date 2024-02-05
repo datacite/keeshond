@@ -29,7 +29,7 @@ jobs:
       PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
   deploy-worker:
-    needs: [build]
+    needs: [build, deploy-api]
     uses: ./.github/workflows/deployment.yml
     with:
       versionvar_filename: keeshond
@@ -49,7 +49,7 @@ jobs:
       PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
   deploy-worker-test:
-    needs: [build]
+    needs: [build, deploy-api-test]
     uses: ./.github/workflows/deployment.yml
     with:
       versionvar_filename: keeshond
