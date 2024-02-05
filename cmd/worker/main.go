@@ -67,20 +67,20 @@ func report_job(repoId string, beginDate time.Time, endDate time.Time, platform 
 		}
 
 		// Write report to file
-		filename := "report_" + repoId + "_" + beginDate.Format("2006-01-02") + "_" + endDate.Format("2006-01-02") + "_" + platform + "_" + publisher + "_" + publisherId + "_" + string(index) + ".json"
-		file, err := os.Create(filename)
-		if err != nil {
-			return err
-		}
-		defer file.Close()
+		// filename := "report_" + repoId + "_" + beginDate.Format("2006-01-02") + "_" + endDate.Format("2006-01-02") + "_" + platform + "_" + publisher + "_" + publisherId + "_" + string(index) + ".json"
+		// file, err := os.Create(filename)
+		// if err != nil {
+		// 	return err
+		// }
+		// defer file.Close()
 
-		file.Write(reportJson)
+		//file.Write(reportJson)
 
 		// Gzip json
-		//compressedJson, _ := gzipData(reportJson)
+		compressedJson, _ := gzipData(reportJson)
 
 		// Send to Reports API
-		err = reports.SendReportToAPI(reportsAPIEndpoint, reportJson, config.DataCite.JWT)
+		err = reports.SendReportToAPI(reportsAPIEndpoint, compressedJson, config.DataCite.JWT)
 
 		if err != nil {
 			return err

@@ -232,8 +232,7 @@ func SendReportToAPI(reportsAPIEndpoint string, compressedJson []byte, jwt strin
 	}
 
 	// Set content type to be gzip as report will be compressed
-	//req.Header.Set("Content-Type", "application/gzip")
-	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Content-Type", "application/gzip")
 
 	// Add JWT token to request
 	req.Header.Set("Authorization", "Bearer " + jwt)
