@@ -83,7 +83,7 @@ func (service *ReportsService) GenerateDatasetUsageReport(repoId string, startDa
 		// This information would need to come from our API which would require a lookup based on dataset-id
 		// This could provide too much of an overhead for report generation.
 		exceptions = append(exceptions, Exception{
-			Code:     "3071",
+			Code:     3071,
 			Severity: "warning",
 			Message:  "dataset-title",
 			Data:     "dataset-title is unavailable in this report, can be obtained from metadata lookup based on dataset-id",
@@ -92,14 +92,14 @@ func (service *ReportsService) GenerateDatasetUsageReport(repoId string, startDa
 		// Add missing attribute exceptions for potentially missing data
 		if sharedData.Platform == "" {
 			exceptions = append(exceptions, Exception{
-				Code:     "3071",
+				Code:     3071,
 				Severity: "warning",
 				Message:  "platform",
 			})
 		}
 		if sharedData.Publisher == "" {
 			exceptions = append(exceptions, Exception{
-				Code:     "3071",
+				Code:     3071,
 				Severity: "warning",
 				Message:  "publisher",
 				Data:     "publisher is unavailable in this report, can be obtained from metadata lookup based on dataset-id",
@@ -107,7 +107,7 @@ func (service *ReportsService) GenerateDatasetUsageReport(repoId string, startDa
 		}
 		if sharedData.PublisherId == "" {
 			exceptions = append(exceptions, Exception{
-				Code:     "3071",
+				Code:     3071,
 				Severity: "warning",
 				Message:  "publisher-id",
 				Data:     "publisher-id is unavailable in this report, can be obtained from metadata lookup based on dataset-id",
@@ -117,7 +117,7 @@ func (service *ReportsService) GenerateDatasetUsageReport(repoId string, startDa
 		if addCompressedHeader {
 			// Add exception that this will be compressed report
 			exceptions = append(exceptions, Exception{
-					Code:     "69",
+					Code:      69,
 					Message:  "Report is compressed using gzip",
 					Severity: "warning",
 					HelpUrl:  "https://github.com/datacite/sashimi",
@@ -250,13 +250,6 @@ func SendReportToAPI(reportsAPIEndpoint string, compressedJson []byte, jwt strin
 	if err != nil {
 		return err
 	}
-
-	// Print response body
-	buf := new(bytes.Buffer)
-	buf.ReadFrom(res.Body)
-	newStr := buf.String()
-	log.Println(newStr)
-
 
 	// Check response code
 	switch res.StatusCode {

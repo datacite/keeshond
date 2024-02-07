@@ -8,7 +8,7 @@ type ReportingPeriod struct {
 }
 
 type Exception struct {
-	Code string `json:"code"`
+	Code int `json:"code"`
 	Severity string `json:"severity"`
 	Message string `json:"message"`
 	HelpUrl string `json:"help-url"`
