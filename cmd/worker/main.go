@@ -16,7 +16,7 @@ import (
 )
 
 func report_job(repoId string, beginDate time.Time, endDate time.Time, platform string, publisher string, publisherId string) error {
-	addCompressedHeader := false
+	addCompressedHeader := true
 
 	// Get keeshond configuration from environment variables.
 	var config = app.GetConfigFromEnv()
@@ -65,16 +65,6 @@ func report_job(repoId string, beginDate time.Time, endDate time.Time, platform 
 		if err != nil {
 			return err
 		}
-
-		// Write report to file
-		// filename := "report_" + repoId + "_" + beginDate.Format("2006-01-02") + "_" + endDate.Format("2006-01-02") + "_" + platform + "_" + publisher + "_" + publisherId + "_" + string(index) + ".json"
-		// file, err := os.Create(filename)
-		// if err != nil {
-		// 	return err
-		// }
-		// defer file.Close()
-
-		//file.Write(reportJson)
 
 		// Gzip json
 		compressedJson, _ := gzipData(reportJson)
