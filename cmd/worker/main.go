@@ -33,9 +33,9 @@ func report_job(repoId string, beginDate time.Time, endDate time.Time, platform 
 	reportsService := reports.NewReportsService(statsService)
 
 	// Create shared data used for all datasets
-	sharedData := reports.SharedData {
-		Platform: platform,
-		Publisher: publisher,
+	sharedData := reports.SharedData{
+		Platform:    platform,
+		Publisher:   publisher,
 		PublisherId: publisherId,
 	}
 

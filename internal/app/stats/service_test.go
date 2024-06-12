@@ -144,8 +144,8 @@ func TestStatsService_Aggregate(t *testing.T) {
 
 	// Construct query
 	query := Query{
-		Start:  start,
-		End:    end,
+		Start: start,
+		End:   end,
 	}
 
 	statsRepository := NewStatsRepository(conn)
@@ -250,8 +250,8 @@ func TestStatsService_BreakdownByPID(t *testing.T) {
 
 	// Construct query for timeseries by hour
 	query := Query{
-		Start:  start,
-		End:    end,
+		Start: start,
+		End:   end,
 	}
 
 	// Get stats
@@ -285,8 +285,8 @@ func TestStatsService_CountUniquePID(t *testing.T) {
 
 	// Construct query for timeseries by hour
 	query := Query{
-		Start:  start,
-		End:    end,
+		Start: start,
+		End:   end,
 	}
 
 	// Get stats

@@ -11,12 +11,12 @@ type Config struct {
 	}
 
 	AnalyticsDatabase struct {
-		Host string
-		Port string
-		User string
-		Dbname string
+		Host     string
+		Port     string
+		User     string
+		Dbname   string
 		Password string
-		Sslmode string
+		Sslmode  string
 	}
 
 	Plausible struct {
@@ -24,9 +24,14 @@ type Config struct {
 	}
 
 	DataCite struct {
-		Url string
-		JWT string
+		Url          string
+		JWT          string
 		JWTPublicKey string
+	}
+
+	Validate struct {
+		DoiExistence bool
+		DoiUrl       bool
 	}
 
 	ValidateDoi bool

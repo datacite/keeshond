@@ -11,13 +11,13 @@ type SessionRepositoryReader interface {
 }
 
 type SessionRepository struct {
-	db 		*gorm.DB
-	config 	*app.Config
+	db     *gorm.DB
+	config *app.Config
 }
 
 func NewSessionRepository(db *gorm.DB, config *app.Config) *SessionRepository {
 	return &SessionRepository{
-		db: db,
+		db:     db,
 		config: config,
 	}
 }

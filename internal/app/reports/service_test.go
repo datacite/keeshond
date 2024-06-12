@@ -9,11 +9,9 @@ import (
 )
 
 type MockReportsRepositoryReader struct {
-
 }
 
 type MockStatsService struct {
-
 }
 
 // Mock breakdown
@@ -22,34 +20,34 @@ func (m *MockStatsService) BreakdownByPID(repoId string, query stats.Query, page
 	if page == 1 {
 		return []stats.BreakdownResult{
 			{
-				Pid: "10.1234/1",
-				TotalViews: 100,
-				UniqueViews: 50,
-				TotalDownloads: 50,
+				Pid:             "10.1234/1",
+				TotalViews:      100,
+				UniqueViews:     50,
+				TotalDownloads:  50,
 				UniqueDownloads: 25,
 			},
 			{
-				Pid: "10.1234/2",
-				TotalViews: 100,
-				UniqueViews: 50,
-				TotalDownloads: 50,
+				Pid:             "10.1234/2",
+				TotalViews:      100,
+				UniqueViews:     50,
+				TotalDownloads:  50,
 				UniqueDownloads: 25,
 			},
 		}
 	} else if page == 2 {
 		return []stats.BreakdownResult{
 			{
-				Pid: "10.1234/3",
-				TotalViews: 100,
-				UniqueViews: 50,
-				TotalDownloads: 50,
+				Pid:             "10.1234/3",
+				TotalViews:      100,
+				UniqueViews:     50,
+				TotalDownloads:  50,
 				UniqueDownloads: 25,
 			},
 			{
-				Pid: "10.1234/4",
-				TotalViews: 100,
-				UniqueViews: 50,
-				TotalDownloads: 50,
+				Pid:             "10.1234/4",
+				TotalViews:      100,
+				UniqueViews:     50,
+				TotalDownloads:  50,
 				UniqueDownloads: 25,
 			},
 		}
@@ -67,17 +65,17 @@ func (m *MockStatsService) CountUniquePID(repoId string, query stats.Query) int6
 func (m *MockStatsService) Timeseries(repoId string, query stats.Query) []stats.TimeseriesResult {
 	return []stats.TimeseriesResult{
 		{
-			Date: time.Date(2018, 1, 1, 0, 0, 0, 0, time.UTC),
-			TotalViews: 100,
-			UniqueViews: 50,
-			TotalDownloads: 50,
+			Date:            time.Date(2018, 1, 1, 0, 0, 0, 0, time.UTC),
+			TotalViews:      100,
+			UniqueViews:     50,
+			TotalDownloads:  50,
 			UniqueDownloads: 25,
 		},
 		{
-			Date: time.Date(2018, 1, 2, 0, 0, 0, 0, time.UTC),
-			TotalViews: 200,
-			UniqueViews: 100,
-			TotalDownloads: 100,
+			Date:            time.Date(2018, 1, 2, 0, 0, 0, 0, time.UTC),
+			TotalViews:      200,
+			UniqueViews:     100,
+			TotalDownloads:  100,
 			UniqueDownloads: 50,
 		},
 	}
@@ -86,9 +84,9 @@ func (m *MockStatsService) Timeseries(repoId string, query stats.Query) []stats.
 // Mock aggregate
 func (m *MockStatsService) Aggregate(repoId string, query stats.Query) stats.AggregateResult {
 	return stats.AggregateResult{
-		TotalViews: 100,
-		UniqueViews: 50,
-		TotalDownloads: 50,
+		TotalViews:      100,
+		UniqueViews:     50,
+		TotalDownloads:  50,
 		UniqueDownloads: 25,
 	}
 }
@@ -112,9 +110,9 @@ func TestGenerateDatasetUsageReport(t *testing.T) {
 	endDate := time.Date(2018, 12, 31, 0, 0, 0, 0, time.UTC)
 
 	// Create fake shared data
-	sharedData := SharedData {
-		Platform: "datacite",
-		Publisher: "datacite",
+	sharedData := SharedData{
+		Platform:    "datacite",
+		Publisher:   "datacite",
 		PublisherId: "datacite.test",
 	}
 
