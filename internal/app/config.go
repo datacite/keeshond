@@ -53,7 +53,7 @@ func GetConfigFromEnv() *Config {
 	config.DataCite.JWTPublicKey = strings.Replace(getEnv("JWT_PUBLIC_KEY", ""), `\n`, "\n", -1)
 
 	// Database config
-	config.AnalyticsDatabase.Host = getEnv("ANALYTICS_DATABASE_HOST", "wendels-mbp.lan")
+	config.AnalyticsDatabase.Host = getEnv("ANALYTICS_DATABASE_HOST", "localhost")
 	config.AnalyticsDatabase.Port = getEnv("ANALYTICS_DATABASE_PORT", "9000")
 	config.AnalyticsDatabase.User = getEnv("ANALYTICS_DATABASE_USER", "keeshond")
 	config.AnalyticsDatabase.Dbname = getEnv("ANALYTICS_DATABASE_DBNAME", "keeshond")
