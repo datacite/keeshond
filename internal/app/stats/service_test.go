@@ -75,7 +75,8 @@ func setupTestDB(config *app.Config) (*gorm.DB, error) {
 func setup() TestState {
 	// Test config
 	config := app.GetConfigFromEnv()
-	config.ValidateDoi = false
+	config.Validate.DoiExistence = false
+	config.Validate.DoiUrl = false
 	config.AnalyticsDatabase.Dbname = "keeshond_test"
 
 	conn, err := setupTestDB(config)
@@ -127,7 +128,8 @@ func TestMain(m *testing.M) {
 func TestStatsService_Aggregate(t *testing.T) {
 	// Test config
 	config := app.GetConfigFromEnv()
-	config.ValidateDoi = false
+	config.Validate.DoiExistence = false
+	config.Validate.DoiUrl = false
 	config.AnalyticsDatabase.Dbname = "keeshond_test"
 
 	conn, err := setupTestDB(config)
@@ -174,7 +176,8 @@ func TestStatsService_Aggregate(t *testing.T) {
 func TestStatsService_Timeseries(t *testing.T) {
 	// Test config
 	config := app.GetConfigFromEnv()
-	config.ValidateDoi = false
+	config.Validate.DoiExistence = false
+	config.Validate.DoiUrl = false
 	config.AnalyticsDatabase.Dbname = "keeshond_test"
 
 	conn, err := setupTestDB(config)
@@ -230,7 +233,8 @@ func TestStatsService_Timeseries(t *testing.T) {
 func TestStatsService_BreakdownByPID(t *testing.T) {
 	// Test config
 	config := app.GetConfigFromEnv()
-	config.ValidateDoi = false
+	config.Validate.DoiExistence = false
+	config.Validate.DoiUrl = false
 	config.AnalyticsDatabase.Dbname = "keeshond_test"
 
 	conn, err := setupTestDB(config)
@@ -265,7 +269,8 @@ func TestStatsService_BreakdownByPID(t *testing.T) {
 func TestStatsService_CountUniquePID(t *testing.T) {
 	// Test config
 	config := app.GetConfigFromEnv()
-	config.ValidateDoi = false
+	config.Validate.DoiExistence = false
+	config.Validate.DoiUrl = false
 	config.AnalyticsDatabase.Dbname = "keeshond_test"
 
 	conn, err := setupTestDB(config)
@@ -300,7 +305,8 @@ func TestStatsService_CountUniquePID(t *testing.T) {
 func TestStatsService_LastEvent(t *testing.T) {
 	// Test config
 	config := app.GetConfigFromEnv()
-	config.ValidateDoi = false
+	config.Validate.DoiExistence = false
+	config.Validate.DoiUrl = false
 	config.AnalyticsDatabase.Dbname = "keeshond_test"
 
 	conn, err := setupTestDB(config)

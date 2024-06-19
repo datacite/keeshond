@@ -96,11 +96,7 @@ func (service *EventService) CreateRaw(event Event) (Event, error) {
 func (service *EventService) Validate(eventRequest *EventRequest) error {
 	var err error
 
-	if eventRequest.Name != "view" {
-		return err
-	}
-
-	if !service.shouldValidate() {
+	if !shouldValidate(service, eventRequest) {
 		return err
 	}
 
@@ -127,8 +123,12 @@ func (service *EventService) Validate(eventRequest *EventRequest) error {
 	return err
 }
 
-func (service *EventService) shouldValidate() bool {
-	return service.config.Validate.DoiExistence && service.config.Validate.DoiUrl
+func shouldValidate(service *EventService, eventRequest *EventRequest) bool {
+	if eventRequest.Name != "view" {
+		return false
+	}
+
+	return service.config.Validate.DoiExistence || service.config.Validate.DoiUrl
 }
 
 func getDoi(doi string, dataciteApiUrl string) (*http.Response, error) {

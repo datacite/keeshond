@@ -32,7 +32,8 @@ func main() {
 
 					// Get configuration from environment variables.
 					var config = app.GetConfigFromEnv()
-					config.ValidateDoi = false
+					config.Validate.DoiExistence = false
+					config.Validate.DoiUrl = false
 
 					// Setup database connection
 					conn := createDB(config)

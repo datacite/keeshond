@@ -2,6 +2,7 @@ package app
 
 import (
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -33,8 +34,6 @@ type Config struct {
 		DoiExistence bool
 		DoiUrl       bool
 	}
-
-	ValidateDoi bool
 }
 
 func getEnv(key, fallback string) string {
@@ -54,14 +53,15 @@ func GetConfigFromEnv() *Config {
 	config.DataCite.JWTPublicKey = strings.Replace(getEnv("JWT_PUBLIC_KEY", ""), `\n`, "\n", -1)
 
 	// Database config
-	config.AnalyticsDatabase.Host = getEnv("ANALYTICS_DATABASE_HOST", "localhost")
+	config.AnalyticsDatabase.Host = getEnv("ANALYTICS_DATABASE_HOST", "wendels-mbp.lan")
 	config.AnalyticsDatabase.Port = getEnv("ANALYTICS_DATABASE_PORT", "9000")
 	config.AnalyticsDatabase.User = getEnv("ANALYTICS_DATABASE_USER", "keeshond")
 	config.AnalyticsDatabase.Dbname = getEnv("ANALYTICS_DATABASE_DBNAME", "keeshond")
 	config.AnalyticsDatabase.Password = getEnv("ANALYTICS_DATABASE_PASSWORD", "keeshond")
 
 	// Validate DOI
-	config.ValidateDoi = getEnv("VALIDATE_DOI", "true") == "true"
+	config.Validate.DoiExistence, _ = strconv.ParseBool(getEnv("VALIDATE_DOI_EXISTENCE", "true"))
+	config.Validate.DoiUrl, _ = strconv.ParseBool(getEnv("VALIDATE_DOI_URL", "false"))
 
 	return &config
 }
