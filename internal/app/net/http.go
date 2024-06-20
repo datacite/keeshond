@@ -23,13 +23,13 @@ import (
 )
 
 type Http struct {
-	server *http.Server
-	router *chi.Mux
-	config *app.Config
-	db     *gorm.DB
+	server    *http.Server
+	router    *chi.Mux
+	config    *app.Config
+	db        *gorm.DB
 	tokenAuth *jwtauth.JWTAuth
 
-	eventServiceDB        *event.EventService
+	eventServiceDB *event.EventService
 
 	statsService *stats.StatsService
 }
@@ -44,10 +44,10 @@ func NewHttpServer(config *app.Config, db *gorm.DB) *Http {
 
 	// Create a new server that wraps the net/http server & add a router.
 	s := &Http{
-		server: &http.Server{},
-		router: chi.NewRouter(),
-		config: config,
-		db:     db,
+		server:    &http.Server{},
+		router:    chi.NewRouter(),
+		config:    config,
+		db:        db,
 		tokenAuth: tokenAuth,
 	}
 
@@ -145,7 +145,6 @@ func (s *Http) check(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(result.Timestamp.Format("2006-01-02T15:04:05Z")))
 }
 
-
 // Function to check if useragent is a bot
 func isBot(userAgent string) bool {
 	// Read file with known bots
@@ -162,7 +161,7 @@ func isBot(userAgent string) bool {
 	// Loop through list of bots and check if useragent matches pattern
 	for _, bot := range botsList {
 		pattern := bot["pattern"].(string)
-		regex := regexp.MustCompile("(?i)"+pattern)
+		regex := regexp.MustCompile("(?i)" + pattern)
 
 		if regex.MatchString(userAgent) {
 			return true
@@ -247,8 +246,8 @@ func (s *Http) getAggregate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	query := stats.Query{
-		Start:  startDate,
-		End:    endDate,
+		Start: startDate,
+		End:   endDate,
 	}
 
 	// Get total views for a repository in query period
@@ -279,8 +278,8 @@ func (s *Http) getTimeseries(w http.ResponseWriter, r *http.Request) {
 	}
 
 	query := stats.Query{
-		Start:  startDate,
-		End:    endDate,
+		Start:    startDate,
+		End:      endDate,
 		Interval: interval,
 	}
 
@@ -321,8 +320,8 @@ func (s *Http) getBreakdown(w http.ResponseWriter, r *http.Request) {
 	}
 
 	query := stats.Query{
-		Start:  startDate,
-		End:    endDate,
+		Start: startDate,
+		End:   endDate,
 	}
 
 	// Get total views for a repository based on query

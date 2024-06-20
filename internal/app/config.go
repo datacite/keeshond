@@ -2,6 +2,7 @@ package app
 
 import (
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -11,12 +12,12 @@ type Config struct {
 	}
 
 	AnalyticsDatabase struct {
-		Host string
-		Port string
-		User string
-		Dbname string
+		Host     string
+		Port     string
+		User     string
+		Dbname   string
 		Password string
-		Sslmode string
+		Sslmode  string
 	}
 
 	Plausible struct {
@@ -24,12 +25,15 @@ type Config struct {
 	}
 
 	DataCite struct {
-		Url string
-		JWT string
+		Url          string
+		JWT          string
 		JWTPublicKey string
 	}
 
-	ValidateDoi bool
+	Validate struct {
+		DoiExistence bool
+		DoiUrl       bool
+	}
 }
 
 func getEnv(key, fallback string) string {
@@ -56,7 +60,8 @@ func GetConfigFromEnv() *Config {
 	config.AnalyticsDatabase.Password = getEnv("ANALYTICS_DATABASE_PASSWORD", "keeshond")
 
 	// Validate DOI
-	config.ValidateDoi = getEnv("VALIDATE_DOI", "true") == "true"
+	config.Validate.DoiExistence, _ = strconv.ParseBool(getEnv("VALIDATE_DOI_EXISTENCE", "true"))
+	config.Validate.DoiUrl, _ = strconv.ParseBool(getEnv("VALIDATE_DOI_URL", "false"))
 
 	return &config
 }

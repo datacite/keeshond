@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -16,17 +16,17 @@ import (
 
 type EventService struct {
 	eventRepository EventRepositoryReader
-	sessionService *session.SessionService
-	config     *app.Config
+	sessionService  *session.SessionService
+	config          *app.Config
 }
 
 type EventRequest struct {
-	Name      string    `json:"name"`
-	RepoId    string    `json:"repoId"`
-	Url       string    `json:"url"`
-	Useragent string    `json:"useragent"`
-	ClientIp  string    `json:"clientIp"`
-	Pid       string    `json:"pid"`
+	Name      string `json:"name"`
+	RepoId    string `json:"repoId"`
+	Url       string `json:"url"`
+	Useragent string `json:"useragent"`
+	ClientIp  string `json:"clientIp"`
+	Pid       string `json:"pid"`
 }
 
 // NewEventService creates a new event service
@@ -34,7 +34,7 @@ func NewEventService(repository EventRepositoryReader, sessionService *session.S
 	return &EventService{
 		eventRepository: repository,
 		sessionService:  sessionService,
-		config:     config,
+		config:          config,
 	}
 }
 
@@ -50,10 +50,10 @@ func (service *EventService) CreateEvent(eventRequest *EventRequest) (Event, err
 
 	// Get hostname from the url
 	url, err := url.Parse(eventRequest.Url)
-    if err != nil {
-        return Event{}, err
-    }
-    hostDomain := strings.TrimPrefix(url.Hostname(), "www.")
+	if err != nil {
+		return Event{}, err
+	}
+	hostDomain := strings.TrimPrefix(url.Hostname(), "www.")
 
 	// User id is generate conforming to COUNTER rules
 	// It's a cryptographic hash of details with a daily salt.
@@ -94,65 +94,84 @@ func (service *EventService) CreateRaw(event Event) (Event, error) {
 }
 
 func (service *EventService) Validate(eventRequest *EventRequest) error {
-	// Http client
-	client := &http.Client{}
+	var err error
 
-	// Validate PID when server is set to validate and is a view event
-	if service.config.ValidateDoi && eventRequest.Name == "view" {
-		return checkDoiExistsInDataCite(eventRequest.Pid, eventRequest.Url, service.config.DataCite.Url, client);
+	if !shouldValidate(service, eventRequest) {
+		return err
+	}
+
+	resp, err := getDoi(eventRequest.Pid, service.config.DataCite.Url)
+
+	if err != nil {
+		return fmt.Errorf("failed to make request: %v", err)
+	}
+
+	defer resp.Body.Close()
+
+	if service.config.Validate.DoiExistence {
+		err = checkDoiExistence(resp)
+	}
+
+	if err != nil {
+		return err
+	}
+
+	if service.config.Validate.DoiUrl {
+		err = checkDoiUrl(resp, eventRequest.Url)
+	}
+
+	return err
+}
+
+func shouldValidate(service *EventService, eventRequest *EventRequest) bool {
+	if eventRequest.Name != "view" {
+		return false
+	}
+
+	return service.config.Validate.DoiExistence || service.config.Validate.DoiUrl
+}
+
+func getDoi(doi string, dataciteApiUrl string) (*http.Response, error) {
+	apiUrl := fmt.Sprintf("%s/dois/%s/get-url", dataciteApiUrl, doi)
+
+	return http.Get(apiUrl)
+}
+
+func checkDoiExistence(resp *http.Response) error {
+	if resp.StatusCode == 404 {
+		return errors.New("this DOI doesn't exist in DataCite")
 	}
 
 	return nil
 }
 
-func checkDoiExistsInDataCite(doi string, url string, dataciteApiUrl string, client *http.Client) error {
-	// Make API call to DataCite for DOI
+func checkDoiUrl(resp *http.Response, url string) error {
+	body, err := io.ReadAll(resp.Body)
 
-	// URL to send the metric to
-	apiUrl := fmt.Sprintf("%s/dois/%s/get-url", dataciteApiUrl, doi)
-
-	// Post json to url
-	resp, _ := http.Get(apiUrl)
-
-	if resp.StatusCode == 404 {
-		return errors.New("This DOI doesn't exist in DataCite")
+	if err != nil {
+		return fmt.Errorf("failed to read body: %v", err)
 	}
 
-	// Close response
-	defer resp.Body.Close()
-
-	// Get Json result
-	body, _ := ioutil.ReadAll(resp.Body)
-
-	type GetUrlResponse struct {
+	var result struct {
 		Url string `json:"url"`
 	}
 
-	var result GetUrlResponse
-	if err := json.Unmarshal(body, &result); err != nil {
-		return errors.New("Can not unmarshal JSON")
+	err = json.Unmarshal(body, &result)
+
+	if err != nil {
+		return errors.New("can not unmarshal JSON")
 	}
 
-	// Compare the result with the url but ignore the protocol
 	if !validateDoiUrl(result.Url, url) {
-		return errors.New("This DOI doesn't match this URL")
+		return errors.New("this DOI doesn't match this URL")
 	}
 
 	return nil
 }
 
 func validateDoiUrl(doiUrl string, urlCompare string) bool {
-	// Print stripScheme(doiUrl)
-	fmt.Println(stripScheme(doiUrl))
-	// Print stripScheme(urlCompare)
-	fmt.Println(stripScheme(urlCompare))
-
 	// Compare the result with the url but ignore the protocol
-	if stripScheme(doiUrl) != stripScheme(urlCompare) {
-		return false
-	}
-
-	return true
+	return stripScheme(doiUrl) == stripScheme(urlCompare)
 }
 
 // Function to strip the scheme from a URL

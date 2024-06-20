@@ -21,14 +21,14 @@ type EventRepositoryReader interface {
 //
 
 type EventRepository struct {
-	db 		*gorm.DB
-	config 	*app.Config
+	db     *gorm.DB
+	config *app.Config
 }
 
 // NewRepository creates a new event repository
 func NewEventRepository(db *gorm.DB, config *app.Config) *EventRepository {
 	return &EventRepository{
-		db: db,
+		db:     db,
 		config: config,
 	}
 }
@@ -37,7 +37,6 @@ func NewEventRepository(db *gorm.DB, config *app.Config) *EventRepository {
 func (repository *EventRepository) Create(event *Event) error {
 	return repository.db.Create(event).Error
 }
-
 
 //
 // Plausible implementation of the event repository

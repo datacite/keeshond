@@ -117,11 +117,11 @@ func (service *ReportsService) GenerateDatasetUsageReport(repoId string, startDa
 		if addCompressedHeader {
 			// Add exception that this will be compressed report
 			exceptions = append(exceptions, Exception{
-					Code:      69,
-					Message:  "Report is compressed using gzip",
-					Severity: "warning",
-					HelpUrl:  "https://github.com/datacite/sashimi",
-					Data:     "usage data needs to be uncompressed",
+				Code:     69,
+				Message:  "Report is compressed using gzip",
+				Severity: "warning",
+				HelpUrl:  "https://github.com/datacite/sashimi",
+				Data:     "usage data needs to be uncompressed",
 			})
 		}
 
@@ -180,7 +180,7 @@ func generateDatasetUsage(beginDate time.Time, endDate time.Time, result stats.B
 	datasetUsage.Publisher = sharedData.Publisher
 
 	if sharedData.PublisherId != "" {
-		datasetUsage.PublisherId = []CounterIdentifier{ {
+		datasetUsage.PublisherId = []CounterIdentifier{{
 			Type:  "client-id",
 			Value: sharedData.PublisherId,
 		}}
@@ -197,23 +197,23 @@ func generateDatasetUsage(beginDate time.Time, endDate time.Time, result stats.B
 			},
 			Instance: []CounterDatasetInstance{
 				{
-					MetricType: "total-dataset-requests",
-					Count:      int(result.TotalDownloads),
+					MetricType:   "total-dataset-requests",
+					Count:        int(result.TotalDownloads),
 					AccessMethod: "regular",
 				},
 				{
-					MetricType: "unique-dataset-requests",
-					Count:      int(result.UniqueDownloads),
+					MetricType:   "unique-dataset-requests",
+					Count:        int(result.UniqueDownloads),
 					AccessMethod: "regular",
 				},
 				{
-					MetricType: "total-dataset-investigations",
-					Count:      int(result.TotalViews),
+					MetricType:   "total-dataset-investigations",
+					Count:        int(result.TotalViews),
 					AccessMethod: "regular",
 				},
 				{
-					MetricType: "unique-dataset-investigations",
-					Count:      int(result.UniqueViews),
+					MetricType:   "unique-dataset-investigations",
+					Count:        int(result.UniqueViews),
 					AccessMethod: "regular",
 				},
 			},
@@ -237,7 +237,7 @@ func SendReportToAPI(reportsAPIEndpoint string, compressedJson []byte, jwt strin
 	req.Header.Set("Content-Encoding", "gzip")
 
 	// Add JWT token to request
-	req.Header.Set("Authorization", "Bearer " + jwt)
+	req.Header.Set("Authorization", "Bearer "+jwt)
 
 	client := http.Client{
 		Timeout: 100 * time.Second,
@@ -253,20 +253,19 @@ func SendReportToAPI(reportsAPIEndpoint string, compressedJson []byte, jwt strin
 
 	// Check response code
 	switch res.StatusCode {
-		case http.StatusCreated:
-			log.Default().Println("Report sent to Reports API")
-		case http.StatusUnauthorized:
-			return errors.New("unauthorized, JWT token is missing or invalid")
-		case http.StatusForbidden:
-			return errors.New("forbidden, JWT is expired or invalid")
-		case http.StatusUnsupportedMediaType:
-			return errors.New("did not include correct Content-Type header")
-		case http.StatusUnprocessableEntity:
-			return errors.New("invalid report provided")
-		default:
-			return errors.New("Error sending report to Reports API: " + res.Status)
+	case http.StatusCreated:
+		log.Default().Println("Report sent to Reports API")
+	case http.StatusUnauthorized:
+		return errors.New("unauthorized, JWT token is missing or invalid")
+	case http.StatusForbidden:
+		return errors.New("forbidden, JWT is expired or invalid")
+	case http.StatusUnsupportedMediaType:
+		return errors.New("did not include correct Content-Type header")
+	case http.StatusUnprocessableEntity:
+		return errors.New("invalid report provided")
+	default:
+		return errors.New("Error sending report to Reports API: " + res.Status)
 	}
 
 	return nil
 }
-

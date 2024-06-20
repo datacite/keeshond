@@ -47,7 +47,6 @@ func (service *StatsService) LastEvent(repoId string) (event.Event, bool) {
 	return service.repository.LastEvent(repoId)
 }
 
-
 // Function to parse a period string into start and end time ranges relative to date
 func ParsePeriodString(period string, date string) (time.Time, time.Time, error) {
 	// Set default start and end times

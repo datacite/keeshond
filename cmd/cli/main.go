@@ -18,7 +18,7 @@ import (
 )
 
 func main() {
-    app := &cli.App{
+	app := &cli.App{
 		Commands: []*cli.Command{
 			{
 				Name:  "event",
@@ -32,7 +32,8 @@ func main() {
 
 					// Get configuration from environment variables.
 					var config = app.GetConfigFromEnv()
-					config.ValidateDoi = false
+					config.Validate.DoiExistence = false
+					config.Validate.DoiUrl = false
 
 					// Setup database connection
 					conn := createDB(config)
@@ -95,9 +96,9 @@ func main() {
 					}
 
 					// Create shared data used for all datasets
-					sharedData := reports.SharedData {
-						Platform: platform,
-						Publisher: publisher,
+					sharedData := reports.SharedData{
+						Platform:    platform,
+						Publisher:   publisher,
 						PublisherId: publisherId,
 					}
 
@@ -155,11 +156,11 @@ func main() {
 				},
 			},
 		},
-    }
+	}
 
-    if err := app.Run(os.Args); err != nil {
-        log.Fatal(err)
-    }
+	if err := app.Run(os.Args); err != nil {
+		log.Fatal(err)
+	}
 
 }
 

@@ -48,7 +48,7 @@ func generateSalt() (Salt, error) {
 
 	// Create the salt
 	salt := Salt{
-		Salt: saltBytes,
+		Salt:    saltBytes,
 		Created: time.Now(),
 	}
 
@@ -102,7 +102,6 @@ func GenerateSessionId(user_id uint64, time time.Time) uint64 {
 	h.Write([]byte(sessionId))
 	return h.Sum64()
 }
-
 
 func GenerateUserId(salt *Salt, client_ip string, user_agent string, repo_id string, host_domain string) uint64 {
 	// Build a salted integer user id

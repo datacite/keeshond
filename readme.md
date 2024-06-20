@@ -39,7 +39,8 @@ Configuration is taken from the environment
 
 ### Web tracking Config
 
-- VALIDATE_DOI - Can enable/disable DOI validation for event tracking - default to true.
+- VALIDATE_DOI_EXISTENCE - Can enable/disable DOI existence validation for event tracking - default to true.
+- VALIDATE_DOI_URL - Can enable/disable DOI URL validation for event tracking - default to false.
 - DATACITE_API_URL - This is used only when storing events as part of DOI validation
 - JWT_PUBLIC_KEY - This is used on authenticated endpoints to validate valid DataCite JWTs
 
@@ -99,4 +100,9 @@ docker build -f ./docker/worker/Dockerfile -t keeshondworker .
 # Run docker with env vars
 docker run --network="host" --env REPO_ID=datacite.demo --env BEGIN_DATE=2022-01-01 --env END_DATE=2022-12-31 --env PLATFORM=datacite --env PUBLISHER="datacite demo" --env PUBLISHER_ID=datacite.demo keeshondworker
 
+```
+
+```
+# Connect to the local docker Clickhouse database container
+clickhouse client --user=keeshond --password=keeshond
 ```
