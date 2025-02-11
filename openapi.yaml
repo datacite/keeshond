@@ -1,0 +1,94 @@
+openapi: 3.0.0
+info:
+  title: Usage Tracker API
+  description: The Usage Tracker API works with the [DataCite Usage Tracker](https://support.datacite.org/docs/datacite-usage-tracker) to log usage events in compliance with the COUNTER Code of Practice for Research Data. 
+  contact:
+    name: DataCite Support
+    url: 'https://support.datacite.org'
+    email: support@datacite.org
+  version: 0.10.0
+servers:
+  - url: 'https://analytics.datacite.org'
+tags:
+  - name: usage-tracker
+    description: Usage Tracker Metric API
+paths:
+  /api/metric:
+    post:
+      summary: Create a Usage Tracker usage metric event.
+      tags: [usage-tracker]
+      security: []
+      parameters:
+        - in: header
+          name: X-Forwarded-For
+          required: true
+          schema:
+            type: string
+            description: Originating IP address of the client. Used for de-duplication of events. Not stored.
+        - in: header
+          name: User-Agent
+          required: true
+          schema:
+            type: string
+            description: Originating User-Agent of the client. Used to filter bots and for de-duplication of events. Not stored.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object              
+              required:
+                - n
+                - u
+                - i
+                - p
+              properties:
+                n:
+                  type: string
+                  description: The metric type of the event.
+                  enum:
+                    - view
+                    - download
+                u: 
+                  type: string
+                  description: The URL source of the reported view or download event.
+                  example: https://examplerepo.org/10.5072/1234abc
+                i: 
+                  type: string
+                  description: The [data-repoid unique identifier of the Repository](https://support.datacite.org/docs/datacite-usage-tracker#setup) for tracking usage analytics.
+                  example: da-1a2b34
+                p:
+                  type: string
+                  description: The downcased DOI name of the reported view or download event.
+                  example: 10.5072/1234abc
+                  
+      responses:
+        '200':
+          description: Success.
+  '/api/check/{data-repoid}':
+    get:
+      summary: Check the last time in UTC a data-repoid received usage metric data.
+      tags: [usage-tracker]
+      security: []
+      parameters:
+      - name: data-repoid
+        in: path
+        description: The [data-repoid unique identifier of the Repository](https://support.datacite.org/docs/datacite-usage-tracker#setup)
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Success.
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 2024-09-26T20:59:13Z
+        '404':
+          description: No events found.
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: No events found.
