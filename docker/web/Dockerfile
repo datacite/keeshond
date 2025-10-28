@@ -1,5 +1,5 @@
 # Builder
-FROM golang:1.22.4 AS builder
+FROM golang:1.25 AS builder
 
 COPY ${PWD} /app
 WORKDIR /app
