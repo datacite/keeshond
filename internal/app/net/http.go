@@ -91,7 +91,7 @@ func NewHttpServer(config *app.Config, db *gorm.DB) *Http {
 	// Protected routes
 	s.router.Group(func(r chi.Router) {
 		r.Use(jwtauth.Verifier(s.tokenAuth))
-		r.Use(jwtauth.Authenticator)
+		r.Use(jwtauth.Authenticator(s.tokenAuth))
 
 		r.Get("/api/stats/aggregate/{repoId}", s.getAggregate)
 		r.Get("/api/stats/timeseries/{repoId}", s.getTimeseries)
