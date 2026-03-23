@@ -136,6 +136,7 @@ func (repository *StatsRepository) BreakdownByPID(repoId string, query Query, pa
 		).Table("time_period_deduped").
 		Select("pid, countIf(name = 'view') as total_views, uniqIf(session_id, name = 'view') as unique_views, countIf(name = 'download') as total_downloads, uniqIf(session_id, name = 'download') as unique_downloads").
 		Group("pid").
+		Order("pid").
 		Scopes(Paginate(page, pageSize)).
 		Scan(&result)
 
